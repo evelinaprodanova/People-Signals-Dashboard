@@ -1,0 +1,16 @@
+team,headcount,rating_1,rating_2,rating_3,rating_4,rating_5,compa_ratio,share_below_090,avg_salary,manager_spans,manager_change_pct,manager_months,stalled_promo_pct,open_roles_pct,overtime_hours,leave_unused_pct
+Platform Engineering,34,3,12,35,38,12,0.91,38,78000,16;10;5,35,4,30,14,11,28
+Applied Robotics,27,4,14,40,32,10,1.02,8,85000,9;9;6,4,30,15,4,3,12
+Customer Success,22,0,2,20,43,35,0.98,14,52000,8;6;5,5,26,22,5,6,20
+Field Deployment,19,5,15,40,30,10,0.89,47,48000,15;2,10,14,55,16,14,35
+Sales,16,6,19,38,31,6,0.96,25,60000,8;6,6,20,35,6,,18
+People and Operations,9,0,11,45,33,11,1,11,55000,7,0,40,10,0,2,8
+Hardware Design,24,4,12,42,32,10,1.06,5,80000,8;8;5,8,22,45,8,9,22
+Supply Chain,13,8,23,38,23,8,0.9,40,50000,10;1,12,16,42,10,5,24
+Marketing,6,0,17,50,33,0,0.99,17,58000,5,0,30,18,0,,10
+Legal and Compliance,4,0,0,50,50,0,1.04,0,90000,3,0,48,12,0,,6
+Data and ML,18,3,13,41,33,10,1.05,6,88000,10;6,20,2,25,12,11,30
+Manufacturing Support,31,7,20,40,26,7,0.93,29,42000,13;12;3,12,15,38,12,12,30
+Finance,8,0,12,50,38,0,1.03,0,70000,7,0,34,12,0,,7
+Quality Assurance,15,5,17,42,29,7,0.94,27,56000,14,18,8,36,12,10,27
+IT and Security,11,0,14,48,30,8,1,9,72000,10,9,18,20,5,5,15

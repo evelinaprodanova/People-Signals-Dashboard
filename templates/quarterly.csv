@@ -1,0 +1,5 @@
+team,quarter,pulse_favorable,pulse_response,manager_score,manager_response,enps,pace_favorable,exits,regretted_exits
+Example team,Q4 25,70,85,4.0,85,20,66,0,0
+Example team,Q1 26,71,85,4.0,85,21,66,0,0
+Example team,Q2 26,72,85,4.0,85,22,66,0,0
+Example team,Q3 26,73,85,4.0,85,23,66,0,0

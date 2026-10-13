@@ -1,0 +1,12 @@
+{
+  "name": "people-signals",
+  "version": "0.1.0",
+  "description": "An in-browser workbook that reads team-level survey, pay and HR data and shows where to look before the exit survey does.",
+  "license": "MIT",
+  "author": "Evelina Prodanova",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build-demo.js",
+    "test": "node tests/run.js"
+  }
+}
