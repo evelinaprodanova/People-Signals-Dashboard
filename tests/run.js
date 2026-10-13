@@ -43,6 +43,20 @@ const euro = demo.quarterly.split('\n').map(l => l.split(',').map(c => c.replace
 r = D.build({ teams: demo.teams, quarterly: euro });
 ok(r.ok && r.dataset.teams[0].mgr[0] === 4.1, 'semicolon files with decimal commas are read');
 
+// 5b. cells pasted from a spreadsheet are tab-separated, and the page's AI prompts match the templates
+const tabs = s => s.split('\n').map(l => l.split(',').join('\t')).join('\n');
+r = D.build({ teams: tabs(demo.teams), quarterly: tabs(demo.quarterly) });
+ok(r.ok && r.dataset.teams.length === D.build({ teams: demo.teams, quarterly: demo.quarterly }).dataset.teams.length, 'cells pasted from a spreadsheet (tab-separated) are read');
+{
+  const unesc = s => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+  const page = unesc(read('index.html')), guide = read('docs/PREPARE_WITH_AI.md');
+  const names = ['teams', 'quarterly', 'exits_by_tenure', 'items', 'groups', 'comments'];
+  const miss = names.filter(n => { const hd = read('templates/' + n + '.csv').split('\n')[0].trim(); return !page.includes('Header row: ' + hd) || !guide.includes('Header row: ' + hd); });
+  ok(!miss.length, 'both AI prompts list the exact header of every template' + (miss.length ? ' (out of date: ' + miss.join(', ') + ')' : ''));
+  const pr = /<pre class="prompt" id="promptA"[^>]*>([\s\S]*?)<\/pre>/.exec(page);
+  ok(pr && guide.includes(pr[1]), 'the prompt on the page is the same text as in docs/PREPARE_WITH_AI.md');
+}
+
 // 6. quoted text and a byte order mark
 const q = D.parseCSV('﻿team,comment\n"A","He said ""hello"", then left"\n');
 ok(q.rows[0].comment === 'He said "hello", then left', 'quotes and a byte order mark are handled');
