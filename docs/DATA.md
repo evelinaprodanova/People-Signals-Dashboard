@@ -7,6 +7,7 @@ Six CSV files. Only the first two are required. All are team-level: **one row pe
 - Blank cells mean "not available". A view that needs a column switches off unless every team has it.
 - Files over 5 MB are refused: that size means the data is not team-level.
 - Templates are in `templates/` and can be downloaded from the page.
+- You can paste cells copied from a spreadsheet into the page instead of choosing a file. To have an AI assistant prepare the files, see [PREPARE_WITH_AI.md](PREPARE_WITH_AI.md).
 
 ## teams.csv (required)
 
