@@ -628,8 +628,13 @@ function showMsg(r,mode){
 async function loadMine(){
   const files={};
   for(const k of Object.keys(PSData.SCHEMA)){
-    const inp=$('f_'+k);
-    if(inp&&inp.files&&inp.files[0]){
+    const inp=$('f_'+k), pb=$('p_'+k), pasted=pb&&pb.value?pb.value.trim():'';
+    const picked=inp&&inp.files&&inp.files[0];
+    if(pasted&&picked){showMsg({ok:false,errors:[PSData.SCHEMA[k].file+': you chose a file and also pasted cells. Use one or the other (clear the paste box or remove the file).'],warnings:[]});return}
+    if(pasted){
+      if(pasted.length>FILE_LIMIT){showMsg({ok:false,errors:[PSData.SCHEMA[k].file+' is larger than 5 MB. This version is meant for team-level data, not one row per person.'],warnings:[]});return}
+      files[k]=pasted;
+    }else if(picked){
       if(inp.files[0].size>FILE_LIMIT){showMsg({ok:false,errors:[PSData.SCHEMA[k].file+' is larger than 5 MB. This version is meant for team-level data, not one row per person.'],warnings:[]});return}
       files[k]=await inp.files[0].text();
     }
@@ -642,6 +647,28 @@ function useDemo(){
   const r=PSData.build(window.PS_DEMO);
   applyDataset(r.dataset,'demo');showMsg(r,'demo');render();
 }
+/* Paste instead of a file: copy the cells from a spreadsheet (tab-separated is detected) and paste them here. Kept in memory only. */
+document.querySelectorAll('.frow').forEach(row=>{
+  const inp=row.querySelector('input[type=file]'),tpl=row.querySelector('button[data-tpl]');
+  if(!inp||!tpl)return;
+  const k=inp.id.slice(2),sc=PSData.SCHEMA[k];if(!sc)return;
+  const box=document.createElement('div');box.className='fact';
+  tpl.parentNode.insertBefore(box,tpl);box.appendChild(tpl);
+  const b=document.createElement('button');b.type='button';b.className='tpl';b.textContent='Paste';b.setAttribute('aria-expanded','false');b.setAttribute('aria-controls','p_'+k);
+  box.appendChild(b);
+  const ta=document.createElement('textarea');ta.id='p_'+k;ta.className='pastebox';ta.rows=6;ta.hidden=true;
+  ta.setAttribute('aria-label','Paste the contents of '+sc.file+', header row first');
+  ta.placeholder='Select the cells in your spreadsheet, including the header row, copy them and paste here.';
+  row.appendChild(ta);
+  b.onclick=()=>{const open=ta.hidden;ta.hidden=!open;b.setAttribute('aria-expanded',open?'true':'false');b.textContent=open?'Hide paste box':'Paste';if(open)ta.focus()};
+});
+/* Copy a prompt to the clipboard, with a select-and-copy fallback for pages opened from disk */
+document.querySelectorAll('button[data-copy]').forEach(b=>b.onclick=()=>{
+  const el=$(b.dataset.copy);if(!el)return;
+  const done=()=>{const t=b.textContent;b.textContent='Copied';setTimeout(()=>{b.textContent=t},1500)};
+  const fallback=()=>{const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);try{document.execCommand('copy')&&done()}catch(e){}s.removeAllRanges()};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(el.textContent).then(done,fallback);else fallback();
+});
 document.querySelectorAll('button[data-tpl]').forEach(b=>b.onclick=()=>download(b.dataset.tpl+'.csv',(window.PS_TEMPLATES||{})[b.dataset.tpl]||''));
 $('loadMine').onclick=loadMine;$('useDemo').onclick=useDemo;$('printBtn').onclick=()=>window.print();
 useDemo();
