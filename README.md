@@ -38,7 +38,7 @@ Around that:
 1. Open `index.html` in a browser. No install, no server. The demo data loads.
 2. Open **Load your own data**. Download the templates, fill them in, choose the files, and press **Check and load my files**. The page checks them and tells you what is wrong, row by row.
 
-Only `teams.csv` and `quarterly.csv` are required. Each optional file switches on another view. File formats are in [docs/DATA.md](docs/DATA.md).
+Only `teams.csv` and `quarterly.csv` are required. Each optional file switches on another view. File formats are in [docs/DATA.md](docs/DATA.md). To save time, an AI assistant can prepare the files for you: see [docs/PREPARE_WITH_AI.md](docs/PREPARE_WITH_AI.md), and read its note on privacy first. You can also paste cells straight from a spreadsheet into the page.
 
 To host it for yourself, put the folder on any static host, for example GitHub Pages. There is nothing to run on a server.
 
@@ -59,7 +59,7 @@ src/app.js        the dashboard
 src/demo.js       demo data and templates packed into one file (generated)
 demo-data/        the invented demo data, as CSV
 templates/        empty templates with one example row
-docs/             method, data formats, limits, privacy
+docs/             method, data formats, limits, privacy, preparing files with an AI assistant
 tests/            node tests/run.js
 scripts/          build-demo.js
 ```
