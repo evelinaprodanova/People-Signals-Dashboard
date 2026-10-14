@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.7
+
+- New One team tab on the dashboard: pick a team from a dropdown and see it against the company and against its own earlier quarters. It leaves out the equity view and every other team, and it prints on its own.
+- Equity lens gets a third group: people who are another gender or have not said. It is pooled across teams, so a small group is never shown team by team. New optional columns in groups.csv.
+- "Where each team sits" is smaller and sits beside its key. Team detail is two columns instead of three.
+- "Follow-through" is now "Action plan - Follow through".
+- The data section now says which data comes from the two surveys and which from HRIS, performance and Total Rewards records.
+- Numbers use the same font as the text. Fixed a clipped first quarter label on the trend charts, "eNPS" showing as "ENPS" in capitals, and a merged line in "Before you rely on it".
+
 ## 0.1.6
 
 - Legend: one short line per signal. The tooltips on the flags use the same lines.

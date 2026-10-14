@@ -365,11 +365,41 @@ th[aria-sort=descending] .sortbtn::after{content:" \25BC";color:var(--accent)}
 @media print{.jump,.heroBtns,.tabs{display:none!important}
   .tabpanel{display:flex!important}.js .tabpanel>h3{display:block}
   details.drop .dropbody{display:block}}
+
+/* one-team view, smaller map, two-column detail, one font for figures */
+#map{display:grid;grid-template-columns:minmax(0,430px) minmax(0,1fr);column-gap:24px;align-items:start}
+#map>h3,#map>.help{grid-column:1/-1}
+#map svg.chart{max-width:430px;width:100%}
+#map .legend{flex-direction:column;gap:6px;align-self:center}
+@media(max-width:820px){#map{grid-template-columns:minmax(0,1fr)}#map .legend{align-self:start}}
+.detailgrid{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+@media(max-width:820px){.detailgrid{grid-template-columns:minmax(0,1fr)}}
+.cardhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.cardhead h3{margin:0}
+td.num,th.num,.facts b,.stat .d,.rangebar .lab,.respbars div,.tenrow .num,.lrow b,.ctl output,.fchip span{font-family:inherit;font-variant-numeric:tabular-nums}
+.chart text{font-family:inherit}
+.chart .cmp{fill:none;stroke:var(--muted);stroke-width:1.4;stroke-dasharray:1 3;stroke-linecap:round}
+.legend i.c{border-top:2px dotted var(--muted);background:none;height:0}
+.viewtabs{margin-top:6px}
+.onebar{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.onebar select{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);min-width:240px;max-width:100%}
+.onehead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.onehead h3{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:1.3rem;margin:0}
+.oneview{display:flex;flex-direction:column;gap:16px}
+.cmptab td,.cmptab th{white-space:nowrap}
+.cmptab td:first-child{white-space:normal}
+@media print{body.print-one .jump,body.print-one .hero,body.print-one section:not(#dashboard),body.print-one footer,body.print-one .dashhead,body.print-one .stats,body.print-one details.settings,body.print-one .tabs,body.print-one #panel-all,body.print-one .noprint{display:none!important}
+ body.print-one #panel-one{display:flex!important}
+ body:not(.print-one) #panel-one{display:none!important}}
+.sub3{margin:14px 0 6px;font-size:.95rem}
+.kp{text-transform:none}
+.tablewrap td::before{text-transform:none}
+.panel svg.chart{max-width:380px}
 </style>
 </head>
 <body>
 <nav class="jump" aria-label="On this page"><div class="jumpin">
-  <a href="#problem">The problem</a><a href="#how">How it works</a><a href="#dashboard">Dashboard</a><a href="#why">Two surveys</a><a href="#signals">Early signals</a><a href="#deeper">Going deeper</a><a href="#choices">My choices</a><a href="#rely">Before you rely on it</a><a href="#limits">Limits</a>
+  <a href="#problem">The problem</a><a href="#how">How it works</a><a href="#dashboard">Dashboard</a><a href="#why">The data</a><a href="#signals">Early signals</a><a href="#deeper">Going deeper</a><a href="#choices">My choices</a><a href="#rely">Before you rely on it</a><a href="#limits">Limits</a>
 </div></nav>
 
 
@@ -377,7 +407,7 @@ th[aria-sort=descending] .sortbtn::after{content:" \25BC";color:var(--accent)}
 <header class="hero">
   <div class="eyebrow">Open source · MIT license · by Evelina Prodanova</div>
   <h1>People Signals</h1>
-  <p class="lede">A small tool that pairs a short pulse survey with a short manager survey every quarter, reads them next to pay data, and tells a leader where to look before the exit survey does.</p>
+  <p class="lede">A small tool that reads two short quarterly surveys, a pulse and a manager survey, next to the data a company already holds in its HR systems (exits, performance ratings, pay, workload, manager changes), and tells a leader where to look before the exit survey does.</p>
   <ul class="chips" aria-label="At a glance"><li>Runs in your browser</li><li>Your data never leaves it</li><li>Team level only, never individuals</li></ul>
   <div class="heroBtns"><a class="btn primary" href="#dashboard">Try it with the demo data</a><a class="btn" href="#how">See how it works</a></div>
   <p class="banner" id="modebanner"></p>
@@ -396,7 +426,7 @@ th[aria-sort=descending] .sortbtn::after{content:" \25BC";color:var(--accent)}
 <section id="how">
   <div class="sechead"><span class="eyebrow">02 · The idea in four steps</span><h2>How it works</h2></div>
   <div class="flow">
-    <div class="step"><span class="stepn">1</span><span class="eyebrow">In</span><h3>Six small files</h3><p>Teams (headcount, pay, ratings and HRIS data), quarterly survey scores and exits, exits by tenure, pulse items, group data for the equity view, and comments.</p></div>
+    <div class="step"><span class="stepn">1</span><span class="eyebrow">In</span><h3>Six small files</h3><p>Survey data: quarterly pulse and manager scores, pulse items and comments. HR data: headcount, ratings, pay, load and manager changes, exits (also by tenure) and group counts for the equity view. Your HRIS, performance and Total Rewards records hold most of it.</p></div>
     <div class="step"><span class="stepn">2</span><span class="eyebrow">Check</span><h3>Twelve signals, one status</h3><p>Pulse and manager moves, falling response, pay and eNPS, new manager, stalled promotions, heavy load, wide span, rating gap, exit clusters and turnover. Each team ends on one rung: Stable, Watch, Slipping or Act.</p></div>
     <div class="step"><span class="stepn">3</span><span class="eyebrow">Guard</span><h3>Privacy first</h3><p>Team level only. Small groups hidden. No individual scores, no individual predictions.</p></div>
     <div class="step"><span class="stepn">4</span><span class="eyebrow">Out</span><h3>One page</h3><p>The top three places to look, a first question for each, and a note on what the data cannot tell you.</p></div>
@@ -405,7 +435,7 @@ th[aria-sort=descending] .sortbtn::after{content:" \25BC";color:var(--accent)}
 
 <section id="dashboard">
   <div class="sechead"><span class="eyebrow">03 · Try it</span><h2>The dashboard</h2></div>
-  <p>Each quarter, people answer two short surveys: a pulse on how the team is doing and a few questions on manager support. They are read as a pair, and each team gets one status: Stable, Watch, Slipping or Act. Click a team to see its detail. Open the settings to change what counts as a flag.</p>
+  <p>Two short surveys run each quarter: a pulse on how the team is doing, and a manager effectiveness survey. Everything else comes from data the company already holds (HRIS, performance ratings, Total Rewards pay data, workload and manager-change records). Each team gets one status: Stable, Watch, Slipping or Act. Click a team to see its detail, or open the One team view. Open the settings to change what counts as a flag.</p>
   <details class="settings upload" id="upBox">
     <summary><span id="upSum">Load your own data (it stays in this browser)</span></summary>
     <p class="note" style="margin-top:8px">Team-level files only: one row per team, never per person. Download a template, fill it in and choose the files, or use Paste. Only the first two are required, and each other file switches on another view. Nothing is uploaded.</p>
@@ -417,7 +447,7 @@ th[aria-sort=descending] .sortbtn::after{content:" \25BC";color:var(--accent)}
         <li><b>Paste it into your assistant</b>. Give it your export, or only the column names.</li>
         <li><b>Save each answer as a .csv file</b>, or press Paste next to a file and paste the cells in.</li>
       </ol>
-      <p class="msg">Giving data to an assistant sends it to that provider, even though this page never sends anything. Use one your company has approved, leave out names, and prefer team totals. The safer prompt shares only column names.</p>
+      <p class="msg">Handing data to an assistant sends it to that provider. This page never sends anything, but the assistant does. Use one your company has approved, leave out names, and prefer team totals to person-level rows. The safer prompt shares only column names and asks for formulas you run yourself.</p>
       <div class="promptwrap"><div class="prow"><b>Safer: column names only</b><button class="tpl" type="button" data-copy="promptB">Copy prompt</button></div><pre class="prompt" id="promptB" tabindex="0">I am preparing data for People Signals, a free tool that reads team-level CSV files in the browser. I will not share my data itself. I will give you only the column names of my export, and you will write the spreadsheet formulas, or a short Python script, that I can run on my own computer to build the files below. Do not ask me for the data.
 
 RULES
@@ -464,9 +494,10 @@ Header row: team,growth_career,workload_pace,manager_support,tools_process,recog
 - Percent of answers that were favorable on each pulse item. plan_to_stay is "I plan to be here in a year".
 
 5. groups.csv (optional, only if I ask for the equity view). One row per team.
-Header row: team,women,other,promoted_women,promoted_men,exits_women,exits_men,compa_women,compa_men,pulse_women,pulse_men,response_women,response_men
-- women: number of women in the team. other: number of people in neither group (0 if unknown).
+Header row: team,women,other,promoted_women,promoted_men,exits_women,exits_men,compa_women,compa_men,pulse_women,pulse_men,response_women,response_men,promoted_other,exits_other,compa_other,pulse_other,response_other
+- women: number of women in the team. other: number of people who are another gender or have not said (0 if none). Never guess anyone's gender.
 - promoted_women, promoted_men, exits_women, exits_men: counts over the last 12 months.
+- promoted_other, exits_other, compa_other, pulse_other, response_other: the same figures for the people counted in other. Leave them empty when other is 0.
 - compa_women, compa_men: average compa-ratio. pulse_women, pulse_men: percent favorable. response_women, response_men: percent who answered.
 
 6. comments.csv (optional). One survey comment per row.
@@ -524,9 +555,10 @@ Header row: team,growth_career,workload_pace,manager_support,tools_process,recog
 - Percent of answers that were favorable on each pulse item. plan_to_stay is "I plan to be here in a year".
 
 5. groups.csv (optional, only if I ask for the equity view). One row per team.
-Header row: team,women,other,promoted_women,promoted_men,exits_women,exits_men,compa_women,compa_men,pulse_women,pulse_men,response_women,response_men
-- women: number of women in the team. other: number of people in neither group (0 if unknown).
+Header row: team,women,other,promoted_women,promoted_men,exits_women,exits_men,compa_women,compa_men,pulse_women,pulse_men,response_women,response_men,promoted_other,exits_other,compa_other,pulse_other,response_other
+- women: number of women in the team. other: number of people who are another gender or have not said (0 if none). Never guess anyone's gender.
 - promoted_women, promoted_men, exits_women, exits_men: counts over the last 12 months.
+- promoted_other, exits_other, compa_other, pulse_other, response_other: the same figures for the people counted in other. Leave them empty when other is 0.
 - compa_women, compa_men: average compa-ratio. pulse_women, pulse_men: percent favorable. response_women, response_men: percent who answered.
 
 6. comments.csv (optional). One survey comment per row.
@@ -543,7 +575,7 @@ Give each file in its own code block, with the file name above it, ready to save
       <div class="frow"><div><b>quarterly.csv</b> <span class="badge req">required</span><small>Pulse, manager survey, eNPS, pace, exits and regretted exits, for the last 4 quarters</small></div><input type="file" accept=".csv,text/csv,text/plain" id="f_quarterly" aria-label="quarterly.csv"><button class="tpl" type="button" data-tpl="quarterly">Template</button></div>
       <div class="frow"><div><b>exits_by_tenure.csv</b> <span class="badge">optional</span><small>Exits in the last 12 months by tenure at exit, and how many were regretted</small></div><input type="file" accept=".csv,text/csv,text/plain" id="f_exits_by_tenure" aria-label="exits_by_tenure.csv"><button class="tpl" type="button" data-tpl="exits_by_tenure">Template</button></div>
       <div class="frow"><div><b>items.csv</b> <span class="badge">optional</span><small>Six pulse items and a plan-to-stay question</small></div><input type="file" accept=".csv,text/csv,text/plain" id="f_items" aria-label="items.csv"><button class="tpl" type="button" data-tpl="items">Template</button></div>
-      <div class="frow"><div><b>groups.csv</b> <span class="badge">optional</span><small>Women and men: pay, promotion, exits, pulse, response</small></div><input type="file" accept=".csv,text/csv,text/plain" id="f_groups" aria-label="groups.csv"><button class="tpl" type="button" data-tpl="groups">Template</button></div>
+      <div class="frow"><div><b>groups.csv</b> <span class="badge">optional</span><small>Women, men and others: pay, promotion, exits, pulse, response</small></div><input type="file" accept=".csv,text/csv,text/plain" id="f_groups" aria-label="groups.csv"><button class="tpl" type="button" data-tpl="groups">Template</button></div>
       <div class="frow"><div><b>comments.csv</b> <span class="badge">optional</span><small>Survey comments by team, for keyword themes</small></div><input type="file" accept=".csv,text/csv,text/plain" id="f_comments" aria-label="comments.csv"><button class="tpl" type="button" data-tpl="comments">Template</button></div>
     </div>
     <div class="btnrow"><button class="go" type="button" id="loadMine">Check and load my files</button><button class="x" type="button" id="useDemo">Use the demo data</button></div>
@@ -619,6 +651,11 @@ Give each file in its own code block, with the file name above it, ready to save
       <div class="fromdata" id="fromdata"></div>
     </details>
 
+    <div class="tabs viewtabs" role="tablist" aria-label="Dashboard view">
+      <button type="button" role="tab" id="tab-all" aria-controls="panel-all" aria-selected="true">Whole company</button>
+      <button type="button" role="tab" id="tab-one" aria-controls="panel-one" aria-selected="false" tabindex="-1">One team</button>
+    </div>
+    <div class="tabpanel" role="tabpanel" id="panel-all" aria-labelledby="tab-all">
     <div class="card">
       <h3>Where to look this quarter <span>Top three teams, ranked by status and then by signals</span></h3>
       <p class="help">The teams with the strongest signals, each with a first question to ask. Start the conversation here.</p>
@@ -635,7 +672,7 @@ Give each file in its own code block, with the file name above it, ready to save
           <label class="srch"><span class="sr">Search teams</span><input type="search" id="teamSearch" placeholder="Search teams" autocomplete="off"></label>
           <label class="sortsel"><span>Sort by</span><select id="sortSel"></select></label></div>
         <div class="tablewrap"><table class="cardify">
-          <thead><tr><th aria-sort="none"><button class="sortbtn" type="button" data-k="team">Team</button></th><th class="num" aria-sort="none"><button class="sortbtn" type="button" data-k="hc">People</button></th><th class="num" aria-sort="none"><button class="sortbtn" type="button" data-k="exits" title="Exits in the last 12 months. In brackets: people the team wanted to keep.">Exits, 12m (regretted)</button></th><th aria-sort="none"><button class="sortbtn" type="button" data-k="pulse" title="Share of answers that were favorable on the short pulse survey, after the non-response adjustment.">Pulse</button></th><th class="num" aria-sort="none"><button class="sortbtn" type="button" data-k="enps" title="Employee net promoter score: the share who would recommend working here minus the share who would not. From -100 to 100.">eNPS</button></th><th aria-sort="none"><button class="sortbtn" type="button" data-k="mgr" title="Average score on the short manager survey, out of 5.">Manager</button></th><th class="num" aria-sort="none"><button class="sortbtn" type="button" data-k="compa" title="Compa-ratio: average pay divided by the market midpoint for the role. 1.00 is at market.">Compa</button></th><th class="num" aria-sort="none"><button class="sortbtn" type="button" data-k="resp" title="Share of the team that answered the pulse / the manager survey.">Answered</button></th><th aria-sort="none"><button class="sortbtn" type="button" data-k="status" title="Stable, Watch, Slipping or Act.">Status</button></th><th>Pair, this quarter</th><th aria-sort="none"><button class="sortbtn" type="button" data-k="signals" title="Flags that fired for this team. See the legend above the table.">Signals</button></th></tr></thead>
+          <thead><tr><th aria-sort="none"><button class="sortbtn" type="button" data-k="team">Team</button></th><th class="num" aria-sort="none"><button class="sortbtn" type="button" data-k="hc">People</button></th><th class="num" aria-sort="none"><button class="sortbtn" type="button" data-k="exits" title="Exits in the last 12 months. In brackets: people the team wanted to keep.">Exits, 12m (regretted)</button></th><th aria-sort="none"><button class="sortbtn" type="button" data-k="pulse" title="Share of answers that were favorable on the short pulse survey, after the non-response adjustment.">Pulse</button></th><th class="num" aria-sort="none"><button class="sortbtn" type="button" data-k="enps" title="Employee net promoter score: the share who would recommend working here minus the share who would not. From -100 to 100."><span class="kp">eNPS</span></button></th><th aria-sort="none"><button class="sortbtn" type="button" data-k="mgr" title="Average score on the short manager survey, out of 5.">Manager</button></th><th class="num" aria-sort="none"><button class="sortbtn" type="button" data-k="compa" title="Compa-ratio: average pay divided by the market midpoint for the role. 1.00 is at market.">Compa</button></th><th class="num" aria-sort="none"><button class="sortbtn" type="button" data-k="resp" title="Share of the team that answered the pulse / the manager survey.">Answered</button></th><th aria-sort="none"><button class="sortbtn" type="button" data-k="status" title="Stable, Watch, Slipping or Act.">Status</button></th><th>Pair, this quarter</th><th aria-sort="none"><button class="sortbtn" type="button" data-k="signals" title="Flags that fired for this team. See the legend above the table.">Signals</button></th></tr></thead>
           <tbody id="rows"></tbody>
         </table></div>
         <p class="note" id="hiddenNote"></p>
@@ -648,7 +685,7 @@ Give each file in its own code block, with the file name above it, ready to save
     <div class="card" id="backtest"></div>
 
     <div class="card">
-      <h3 id="detailTitle">Team detail</h3>
+      <div class="cardhead"><h3 id="detailTitle">Team detail</h3><button class="x noprint" type="button" id="toOne">Show only this team</button></div>
       <div class="detailgrid">
         <div class="panel" id="trend"></div>
         <div class="panel" id="silence"></div>
@@ -669,19 +706,29 @@ Give each file in its own code block, with the file name above it, ready to save
     <div class="card" id="drivers"></div>
     <div class="card" id="cost"></div>
     <div class="card" id="structure"></div>
+    </div>
+    <div class="tabpanel" role="tabpanel" id="panel-one" aria-labelledby="tab-one" hidden>
+      <div class="onebar noprint">
+        <label for="oneSel"><b>Choose a team</b></label>
+        <select id="oneSel" aria-label="Choose a team"></select>
+        <button class="x" type="button" id="printOne">Print or save this team as PDF</button>
+      </div>
+      <p class="help">One team, shown against the company and against its own earlier quarters. Nothing about any other team appears here, so it is a page you can take to that team's leader.</p>
+      <div class="oneview" id="one"></div>
+    </div>
   </div>
 
 </section>
 
 <section id="why">
-  <div class="sechead"><span class="eyebrow">04 · The method</span><h2>Why two short surveys, asked together</h2></div>
+  <div class="sechead"><span class="eyebrow">04 · Where the data comes from</span><h2>Two surveys, and the data you already hold</h2></div>
   <div class="cols">
-    <div><h3>They answer different questions</h3><p>The pulse says how people feel. The manager survey says how well they are supported. Which one falls, or both, points to a different conversation.</p></div>
-    <div><h3>Same moment, same people</h3><p>Asking both every quarter puts them on one timeline, with no six-month gap to explain away.</p></div>
-    <div><h3>Short enough to answer</h3><p>A handful of questions each. Long surveys cut response, and everything else gets weaker.</p></div>
+    <div><h3>From two short surveys</h3><p><b>Pulse:</b> how the team is doing, and how many answered. <b>Manager effectiveness:</b> how supported people feel by their manager. Asked in the same quarter, so both sit on one timeline. eNPS and comments also come from your survey tool.</p></div>
+    <div><h3>From your HRIS and other records</h3><p>Headcount, exits and when in a person's tenure they happened, whether the exit was regretted, manager changes and months in role, and the number of direct reports for each manager.</p></div>
+    <div><h3>From performance and Total Rewards</h3><p>Performance ratings by team, compa-ratio and pay data from Total Rewards, and load data: open roles, overtime and leave not taken. None of it needs a new survey.</p></div>
   </div>
-  <p>The pair is read three ways: where a team sits against the company, how it moved since last quarter, and whether the manager score tends to move first across all teams, which decides how much weight an early manager signal deserves.</p>
-
+  <p>The pulse and the manager survey answer different questions: the pulse says how people feel, the manager survey says how well they are supported. Which one falls, or both, points to a different conversation. They are read three ways: where a team sits against the company, how it moved since last quarter, and whether the manager score tends to move first across all teams. The HR data then adds context: whether exits, pay, ratings or workload agree with what people said.</p>
+  <p class="note">Keep the surveys short. Long surveys cut response, and everything else gets weaker.</p>
 </section>
 
 <section id="signals">
@@ -752,7 +799,7 @@ Give each file in its own code block, with the file name above it, ready to save
     <div class="choice"><h3>Every flag comes with a question.</h3><p>A number alone invites guessing. The brief says what to ask, and who to ask.</p></div>
     <div class="choice"><h3>The tool says what it cannot see.</h3><p>A high rating gap can mean a lenient manager or a strong team. The brief says so.</p></div>
     <div class="choice"><h3>Say "too few to call".</h3><p>A small team's number is shown with its range. A manager score with too few answers is hidden, not shown with a warning.</p></div>
-    <div class="choice"><h3>Log what was done.</h3><p>A flag without an owner and a date is only a worry. The follow-through card shows which flags have an action.</p></div>
+    <div class="choice"><h3>Log what was done.</h3><p>A flag without an owner and a date is only a worry. The Action plan card shows which flags have an action.</p></div>
     <div class="choice"><h3>Exits are not all equal.</h3><p>Losing someone the team wanted to keep counts more, twice by default, and you can change it. Agree what "regretted" means first, or it becomes a judgment about the person who left.</p></div>
     <div class="choice"><h3>Humans decide.</h3><p>Nothing here recommends a decision about a person. It points to where a conversation is worth having.</p></div>
   </div>
@@ -766,13 +813,14 @@ Give each file in its own code block, with the file name above it, ready to save
     <li>Check the lead-lag result on real quarters before giving an early manager signal any weight.</li>
     <li>Keep only the early signals that add something once the others are accounted for.</li>
     <li>Agree with Total Rewards how compa-ratio is calculated, and compare only within the same level and location band.</li>
-    <li>Keep manager changes, promotion timing and open roles as a snapshot every quarter, so they can be tested over time. Compare who answers with who does not.</li>
+    <li>Keep manager changes, promotion timing and open roles as a snapshot every quarter, so they can be tested over time.</li>
+    <li>Compare who answers the surveys with who does not, by tenure, location and level.</li>
     <li>Set thresholds from your own history first, then from the backtest, and keep absolute floors beside them.</li>
     <li>Run the equity view with the people who own pay, with legal agreement first, comparing people at the same level and role.</li>
     <li>Use confidential person-level answers to find which items go with staying, and take the cost of an exit from Finance.</li>
     <li>Take spans from HRIS reporting lines and read them with the manager score and the load index.</li>
     <li>Agree what counts as a regretted exit, and mark reorgs and layoffs on the timeline so they are not read as team health.</li>
-    <li>Move the follow-through log into shared storage with access rules and a record of changes.</li>
+    <li>Move the action plan log into shared storage with access rules and a record of changes.</li>
     <li>Agree purpose, access and retention with legal and employee representatives before the first run.</li>
     <li>Start with one leader and one quarter, then ask whether the page changed what they did.</li>
   </ol>
@@ -796,7 +844,7 @@ Give each file in its own code block, with the file name above it, ready to save
         <div class="limit"><h3>Compa-ratio is not the same as fair pay <span class="tag">Pay data</span></h3><p>A low ratio can come from a recent promotion round or poor market data for a niche role. A high one can hide a gap inside the team. Level, location and tenure all move it. Use it to decide where to look first, as a question for Total Rewards, not as a pay equity review.</p></div>
         <div class="limit"><h3>A warning can become a label <span class="tag">Behaviour</span></h3><p>A team marked early warning can be treated as a problem before anything is wrong, and a manager can be judged by it. The flag is a prompt to ask.</p></div>
         <div class="limit"><h3>"Regretted" is a judgment <span class="tag">Definition</span></h3><p>It depends on who decides, and when, and can reflect bias in who managers want to keep. Counts inside one tenure band are very small, so they show as &lt;3 below three. The weight of 2 is my judgment. Agree the definition before the first count.</p></div>
-        <div class="limit"><h3>It does not show whether the action worked <span class="tag">Scope</span></h3><p>The follow-through card logs an owner, action and date for each flag and compares the team's status then and now. In the demo it lives in your browser. A real version needs shared storage and a record of changes. It still cannot say the action caused the change.</p></div>
+        <div class="limit"><h3>It does not show whether the action worked <span class="tag">Scope</span></h3><p>The Action plan card logs an owner, action and date for each flag and compares the team's status then and now. In the demo it lives in your browser. A real version needs shared storage and a record of changes. It still cannot say the action caused the change.</p></div>
       </div>
       <p class="note">Another 21 are listed in <code>docs/LIMITS.md</code> in the repository.</p>
     </div>
@@ -815,7 +863,8 @@ Give each file in its own code block, with the file name above it, ready to save
 /* page behaviour only: tabs, and the limits dropdown opens for printing. No network, no storage. */
 (function(){
   document.documentElement.classList.add('js');
-  var tabs=[].slice.call(document.querySelectorAll('.tabs [role=tab]'));
+  [].slice.call(document.querySelectorAll('.tabs[role=tablist]')).forEach(function(list){
+  var tabs=[].slice.call(list.querySelectorAll('[role=tab]'));
   function show(t,focus){
     tabs.forEach(function(b){
       var on=b===t;
@@ -836,6 +885,11 @@ Give each file in its own code block, with the file name above it, ready to save
       if(n>-1){e.preventDefault();show(tabs[n],true)}
     });
   });
+  });
+  var toOne=document.getElementById('toOne'),pOne=document.getElementById('printOne');
+  if(toOne)toOne.addEventListener('click',function(){document.getElementById('tab-one').click();var o=document.getElementById('panel-one');if(o&&o.scrollIntoView)o.scrollIntoView()});
+  if(pOne)pOne.addEventListener('click',function(){document.body.classList.add('print-one');window.print()});
+  window.addEventListener('afterprint',function(){document.body.classList.remove('print-one')});
   var lim=document.querySelector('details.drop');
   var was=false;
   var more=[].slice.call(document.querySelectorAll('details.moreinfo'));

@@ -28,8 +28,9 @@ Around that:
 - **Guards against small numbers.** Ranges on exit counts, margins of error on the pulse, ranges on every correlation, minimum group sizes, and manager scores hidden below a minimum number of answers.
 - **Equity view.** Gaps between women and men in pay, promotion, exits, pulse and response, for the people who own pay.
 - **What goes with staying.** Six pulse items against a plan-to-stay question.
+- **Regretted exits.** People the team wanted to keep count more (default twice) in the turnover and exit-cluster flags, and are shown inside each tenure band.
 - **What exits cost.** An estimated replacement cost, with the people a team wanted to keep shown separately.
-- **Follow-through log.** An owner, an action and a date for each flag, and the status when it was raised next to the status now.
+- **Action plan - Follow through.** An owner, an action and a date for each flag, and the status when it was raised next to the status now.
 - **Backtest.** Flagged in one quarter, did people leave in the next? A first look, not a result.
 - **Thresholds from your data.** One click sets the lines from what is normal across your teams.
 
