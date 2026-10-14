@@ -24,10 +24,14 @@ const $=id=>document.getElementById(id);
 let selected=null;
 const mean=t=>t.rt?t.rt.reduce((s,v,i)=>s+v*(i+1),0)/100:NaN;
 const exits=t=>t.exq.reduce((a,b)=>a+b,0);
+/* regretted exits are people the team wanted to keep. They count `rw` times in the turnover and exit-cluster flags. */
+const regN=t=>t.xr||0;
+const bandW=(t,s)=>t.ex.map((v,i)=>t.exr?v-t.exr[i]+s.rw*t.exr[i]:v);
+const lt3=v=>v>0&&v<3?'&lt;3':v;
 const last=a=>a[a.length-1];
 const STEADY_PULSE=3;
 function state(){return{min:+$('minGroup').value,drop:+$('drop').value,skew:+$('skew').value,bench:+$('bench').value,
-  delta:+$('delta').value,minResp:+$('minResp').value,mdrop:+$('mdrop').value,pay:+$('payT').value,hi:+$('payHi').value,wl:+$('wl').value,st:+$('stale').value,mm:+$('minMgr').value,eq:+$('eqpay').value,sp:+$('span').value,repl:+$('repl').value}}
+  delta:+$('delta').value,minResp:+$('minResp').value,mdrop:+$('mdrop').value,pay:+$('payT').value,hi:+$('payHi').value,wl:+$('wl').value,st:+$('stale').value,mm:+$('minMgr').value,eq:+$('eqpay').value,sp:+$('span').value,repl:+$('repl').value,rw:+$('rw').value}}
 /* people who answered keep their score, people who did not are assumed `delta` points lower.
    the manager score is on a 5-point scale, so delta (out of 100) is scaled by 0.04 */
 const adjP=(t,i,s)=>{const r=t.resp[i]/100,p=t.pulse[i];return r*p+(1-r)*(p-s.delta)};
@@ -62,9 +66,57 @@ function linkWord(r,n){
   return (zero?'cannot be told apart from no link':Math.abs(r)<0.3?'little link':Math.abs(r)<0.6?'some link':'a clear link '+(MODE==='demo'?'in this invented data':'in this data'))+rng;
 }
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* What every flag means, in plain words. The legend and the pill tooltips both read from here. */
+const SIGNALS=[
+ ['Status',[
+  ['Act','crit','Scores down together, pulse falling twice, or exits bunched. Talk now.'],
+  ['Slipping','warn','One score moved, response falling, or pay or turnover flagged.'],
+  ['Watch','watch','Two or more early signals, nothing else moved yet.'],
+  ['Stable','ok','Nothing fired, or only one early signal.']]],
+ ['Scores',[
+  ['Pulse falling','crit','Pulse down two quarters in a row.'],
+  ['Both down','crit','Manager score and pulse fell in the same quarter.'],
+  ['Manager first','warn','Manager score fell, pulse has not yet.'],
+  ['Pulse alone','warn','Pulse fell, manager score held.'],
+  ['Going quiet','warn','Fewer people are answering the surveys.'],
+  ['within margin','mute','Move is smaller than the margin of error.'],
+  ['low response','mute','Response is below your line. Read with care.']]],
+ ['Pay and ratings',[
+  ['Pay and eNPS','warn','Pay at or below your line, and eNPS low or falling.'],
+  ['Look beyond pay','warn','Pay is fine, yet eNPS is low or falling.'],
+  ['Ratings high','warn','Average rating well above the company\'s.'],
+  ['Ratings low','warn','Average rating well below the company\'s.']]],
+ ['Exits',[
+  ['Exit cluster','crit','Most exits at one tenure point.'],
+  ['Turnover high','warn','Turnover above reference, even at the low end of the range.'],
+  ['Too few exits to call','mute','Looks high, but too few exits to be sure. Not counted.']]],
+ ['Early signals',[
+  ['New manager','warn','Recent manager change, or manager new in role.'],
+  ['Stalled promotions','warn','Top-rated people with no promotion or pay change for long.'],
+  ['Heavy load','warn','High workload index: open roles, overtime, leave, pace.'],
+  ['Wide span','warn','A manager has more reports than your line.']]],
+ ['Other',[
+  ['nothing flagged','ok','No flag fired. Not the same as nothing wrong.']]]
+];
+const SIG_TIP={};SIGNALS.forEach(g=>g[1].forEach(x=>SIG_TIP[x[0].toLowerCase()]=x[2]));
+const TERMS=[
+ ['Pulse','The share of answers that were favorable on a short survey about how the team is doing.'],
+ ['Manager score','The average on a short survey about how well people feel supported by their manager, out of 5.'],
+ ['eNPS','Employee net promoter score: the share who would recommend working here minus the share who would not. From -100 to 100.'],
+ ['Adjusted','A score after allowing for people who did not answer, using the assumption in the settings.'],
+ ['Compa-ratio','Average pay divided by the market midpoint for the role. 1.00 is at market, 0.90 is about 10% under.'],
+ ['Regretted exit','Someone who left whom the team wanted to keep. It counts more than other exits.'],
+ ['Plausible range','With few people, one exit moves a rate a lot. The range shows how far the true rate could be from the one shown.']
+];
+function buildLegend(){
+  const box=$('legend');if(!box)return;
+  box.innerHTML=`<p class="note">Colour: <span class="pill crit">red</span> can move a team to Act. <span class="pill warn">amber</span> is a warning. <span class="pill mute">grey</span> is information only. <span class="pill ok">green</span> means quiet. A flag is a prompt to ask a question, never a verdict.</p>`+
+  `<div class="lgrid">`+SIGNALS.map(g=>`<div class="lg"><h4>${g[0]}</h4>`+g[1].map(x=>`<p><span class="pill ${x[1]}">${esc(x[0])}</span> ${esc(x[2])}</p>`).join('')+`</div>`).join('')+
+  `<div class="lg"><h4>Terms</h4>`+TERMS.map(x=>`<p><strong>${esc(x[0])}.</strong> ${esc(x[1])}</p>`).join('')+`</div></div>`;
+}
 const RANK={stable:0,watch:1,slip:2,act:3};
 const STATUS={stable:{label:'Stable',lvl:'ok',dot:'n0'},watch:{label:'Watch',lvl:'watch',dot:'n3'},slip:{label:'Slipping',lvl:'warn',dot:'n1'},act:{label:'Act',lvl:'crit',dot:'n2'}};
-const stPill=r=>`<span class="pill ${STATUS[r.status].lvl}">${STATUS[r.status].label}</span>`;
+const stPill=r=>`<span class="pill ${STATUS[r.status].lvl}" title="${esc(SIG_TIP[STATUS[r.status].label.toLowerCase()]||'')}">${STATUS[r.status].label}</span>`;
 function analyse(vis,s){
   const co=HAS.ratings?vis.reduce((a,t)=>a+mean(t)*t.hc,0)/vis.reduce((a,t)=>a+t.hc,0):NaN;
   const coE=vis.reduce((a,t)=>a+adjE(t,3,s)*t.hc,0)/vis.reduce((a,t)=>a+t.hc,0);
@@ -115,19 +167,28 @@ function analyse(vis,s){
       f.push({k:'skew',tag:gap>0?'Ratings high':'Ratings low',lvl:'warn',
         why:`Average rating is ${mean(t).toFixed(1)} against ${co.toFixed(1)} across the company${mHide?'.':`, and the manager score is ${last(M).toFixed(1)}.`}`,
         ask:'Bring it to calibration. '+hyp});}
-    const n=exits(t),mx=Math.max(...t.ex);
-    if(n>=3&&mx/n>=0.6){const b=t.ex.indexOf(mx);
+    const n=exits(t),nR=regN(t),nO=n-nR,wOn=HAS.regretted&&s.rw!==1;
+    const bw=bandW(t,s),sw=bw.reduce((a,b)=>a+b,0),mw=Math.max(...bw);
+    if(n>=3&&sw>0&&mw/sw>=0.6){const b=bw.indexOf(mw);
       f.push({k:'cliff',tag:'Exit cluster',lvl:'crit',
-        why:`${mx} of ${n} exits happened at ${BUCKETS[b]} of tenure.`,
+        why:`${t.ex[b]} of ${n} exits happened at ${BUCKETS[b]} of tenure${t.exr&&t.exr[b]?`, ${t.exr[b]} of them regretted`:''}.${t.exr&&wOn?` Regretted exits count ${s.rw} times when finding the cluster.`:''}`,
         ask:'Look at what happens around that point: what onboarding promised, the first review, promotion expectations.'});}
-    const rate=n/t.hc*100,pr=poisRange(n),rlo=pr[0]/t.hc*100,rhi=pr[1]/t.hc*100;
+    /* turnover: regretted exits count rw times. The range is an approximation, so a flag needs the whole range above the reference. */
+    const wn=HAS.regretted?nO+s.rw*nR:n,raw=n/t.hc*100;
+    const rate=wn/t.hc*100;
+    let rlo,rhi;
+    if(HAS.regretted&&wn>0){/* a scaled Poisson count with the same mean and variance as the weighted count */
+      const vr=nO+s.rw*s.rw*nR,c=vr/wn,pr=poisRange(wn/c);rlo=c*pr[0]/t.hc*100;rhi=c*pr[1]/t.hc*100}
+    else if(HAS.regretted){const pr=poisRange(0);rlo=pr[0]/t.hc*100;rhi=pr[1]/t.hc*100}
+    else{const pr=poisRange(n);rlo=pr[0]/t.hc*100;rhi=pr[1]/t.hc*100}
+    const exWhy=`${n} exits over 12 months${HAS.regretted?` (${nR} regretted)`:''} equal ${raw.toFixed(0)}% of current headcount${wOn?`. Counting each regretted exit ${s.rw} times, that is ${rate.toFixed(0)}%`:''}`;
     if(rlo>s.bench)
       f.push({k:'turn',tag:'Turnover high',lvl:'warn',
-        why:`Exits over 12 months equal ${rate.toFixed(0)}% of current headcount (a plausible range of ${rlo.toFixed(0)}% to ${rhi.toFixed(0)}%), and even the low end is above the ${s.bench}% reference.`,
-        ask:'Read it together with the other signals before acting.'});
+        why:`${exWhy} (a plausible range of ${rlo.toFixed(0)}% to ${rhi.toFixed(0)}%), and even the low end is above the ${s.bench}% reference.`,
+        ask:'Read it together with the other signals before acting.'+(nR?' Start with the people the team wanted to keep: when they left and what they said.':'')});
     else if(rate>s.bench+5)
       f.push({k:'fewexits',tag:'Too few exits to call',lvl:'mute',
-        why:`${n} exits over 12 months equal ${rate.toFixed(0)}% of current headcount, but with so few exits the plausible range is ${rlo.toFixed(0)}% to ${rhi.toFixed(0)}%, which includes the ${s.bench}% reference.`,
+        why:`${exWhy}, but with so few exits the plausible range is ${rlo.toFixed(0)}% to ${rhi.toFixed(0)}%, which includes the ${s.bench}% reference.`,
         ask:'Not enough to call turnover high. Look at when and why these people left, and who they were.'});
     const W=wIndex(t);
     if((t.mc!==null&&t.mc>=30)||(t.mnew!==null&&t.mnew<3))
@@ -173,7 +234,7 @@ function analyse(vis,s){
     const me1=Math.sqrt(moe(t,l-1)**2+moe(t,l-2)**2),me2=Math.sqrt(moe(t,l-1)**2+moe(t,l-3)**2);
     const solid=(pDown&&-raw1>=me1)||(sentF&&raw2>=me2)||mDown||has(['cliff']);
     const noisy=(pDown||sentF)&&!solid;
-    return {t,f,rate,rlo,rhi,co,A,M,E,coE,pair,lowR,lowE,W,leadN,leadTags,status,mHide,noisy,me1};
+    return {t,f,rate,raw,rlo,rhi,co,A,M,E,coE,pair,lowR,lowE,W,leadN,leadTags,status,mHide,noisy,me1};
   }).sort((a,b)=>RANK[b.status]-RANK[a.status]||b.leadN-a.leadN||b.f.filter(x=>x.lvl==='crit').length-a.f.filter(x=>x.lvl==='crit').length||b.f.length-a.f.length);
 }
 /* small charts */
@@ -193,27 +254,50 @@ function lineChart(raw,adj,lo,hi,cls,fmt){
   return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Four quarters: ${adj.map(fmt).join(', ')}">${g}</svg>`;
 }
 const fmtE=v=>(v>0?'+':'')+v.toFixed(0);
+/* filter, search and sort for the Teams table */
+let FILTER='all',QUERY='',SORT={k:null,dir:1},LASTRES=null,LASTS=null;
+const SORTS={team:r=>r.t.n.toLowerCase(),hc:r=>r.t.hc,exits:r=>exits(r.t),pulse:r=>last(r.A),enps:r=>last(r.E),mgr:r=>r.mHide?-1:last(r.M),compa:r=>HAS.pay?r.t.compa:-1,resp:r=>last(r.t.resp),status:r=>RANK[r.status],signals:r=>r.f.length};
+const SORTOPTS=[['','Default order (status first)'],['team|1','Team, A to Z'],['pulse|1','Pulse, lowest first'],['enps|1','eNPS, lowest first'],['exits|-1','Exits, most first'],['resp|1','Response, lowest first'],['signals|-1','Most signals first']];
+function viewRows(res){
+  let v=res.filter(r=>(FILTER==='all'||r.status===FILTER)&&(!QUERY||r.t.n.toLowerCase().includes(QUERY)));
+  if(SORT.k){const f=SORTS[SORT.k];v=v.slice().sort((a,b)=>{const x=f(a),y=f(b);return (x<y?-1:x>y?1:0)*SORT.dir})}
+  return v;
+}
+function drawChips(res){
+  const defs=[['all','All'],['act','Act'],['slip','Slipping'],['watch','Watch'],['stable','Stable']];
+  $('fchips').innerHTML=defs.map(([k,l])=>{const n=k==='all'?res.length:res.filter(r=>r.status===k).length;return `<button type="button" class="fchip${FILTER===k?' on':''}" data-f="${k}" aria-pressed="${FILTER===k}">${l} <span>${n}</span></button>`}).join('');
+  document.querySelectorAll('#fchips .fchip').forEach(b=>b.onclick=()=>{FILTER=b.dataset.f;render()});
+}
+function drawRows(res,s){
+  const view=viewRows(res);
+  $('rows').innerHTML=view.length?view.map(r=>rowHtml(r,s)).join(''):`<tr><td colspan="11">No teams match this filter or search.</td></tr>`;
+  document.querySelectorAll('.teambtn').forEach(b=>b.onclick=()=>{selected=b.dataset.t;render()});
+  document.querySelectorAll('.sortbtn').forEach(b=>{const th=b.parentNode;th.setAttribute('aria-sort',SORT.k===b.dataset.k?(SORT.dir===1?'ascending':'descending'):'none');b.onclick=()=>{
+    if(SORT.k!==b.dataset.k)SORT={k:b.dataset.k,dir:b.dataset.k==='status'||b.dataset.k==='signals'||b.dataset.k==='exits'||b.dataset.k==='hc'?-1:1};
+    else if(SORT.dir===1&&!(b.dataset.k==='status'||b.dataset.k==='signals'||b.dataset.k==='exits'||b.dataset.k==='hc'))SORT.dir=-1;
+    else if(SORT.dir===-1&&(b.dataset.k==='status'||b.dataset.k==='signals'||b.dataset.k==='exits'||b.dataset.k==='hc'))SORT.dir=1;
+    else SORT={k:null,dir:1};
+    syncSortSel();render()}});
+  labelTables();
+}
+function syncSortSel(){const v=SORT.k?SORT.k+'|'+SORT.dir:'',el=$('sortSel');if(el)el.value=SORTOPTS.some(o=>o[0]===v)?v:''}
+function labelTables(){document.querySelectorAll('.tablewrap table').forEach(tb=>{
+  const hs=[].map.call(tb.querySelectorAll('thead th'),x=>x.textContent.replace(/\s+/g,' ').trim());
+  tb.querySelectorAll('tbody tr').forEach(tr=>{let i=0;[].forEach.call(tr.children,td=>{td.setAttribute('data-label',td.colSpan>1?'':(hs[i]||''));i+=td.colSpan||1;
+    if(td.childNodes.length>1&&!(td.firstElementChild&&td.firstElementChild.className==='cv')){const w=document.createElement('span');w.className='cv';while(td.firstChild)w.appendChild(td.firstChild);td.appendChild(w)}})})})}
 function pills(r){
-  if(!r.f.length) return '<span class="pill ok">nothing flagged</span>'+(r.lowR?'<span class="pill mute">low response</span>':'');
-  return r.f.map(x=>`<span class="pill ${x.lvl}">${x.tag}</span>`).join('')+(r.noisy?`<span class="pill mute" title="The pulse move is smaller than the survey's margin of error">within margin</span>`:'');
+  if(!r.f.length) return '<span class="pill ok" title="'+esc(SIG_TIP['nothing flagged'])+'">nothing flagged</span>'+(r.lowR?'<span class="pill mute" title="'+esc(SIG_TIP['low response'])+'">low response</span>':'');
+  return r.f.map(x=>`<span class="pill ${x.lvl}" title="${esc(SIG_TIP[x.tag.toLowerCase()]||'')}">${x.tag}</span>`).join('')+(r.noisy?`<span class="pill mute" title="The pulse move is smaller than the survey's margin of error">within margin</span>`:'');
 }
 function delta(v,unit,dec,goodUp,warnInstead){
   if(Math.abs(v)<Math.pow(10,-dec)/2) return `<span class="d flat">no change</span>`;
   const up=v>0,good=goodUp?up:!up;
   return `<span class="d ${good?'good':(warnInstead?'warnc':'bad')}">${up?'▲':'▼'} ${Math.abs(v).toFixed(dec)}${unit} vs last quarter</span>`;
 }
-function render(){
-  const s=state();
-  [['pay','pay'],['equity','eq'],['drivers','items'],['cost','cost'],['structure','spans'],['early','lead']].forEach(([id,k])=>{$(id).style.display=HAS[k]?'':'none'});
-  $('o_min').textContent=s.min;$('o_drop').textContent=s.drop+' pts';$('o_skew').textContent='±'+s.skew.toFixed(2);
-  $('o_delta').textContent=s.delta+' pts';$('o_resp').textContent=s.minResp+'%';$('o_mdrop').textContent='±'+s.mdrop.toFixed(1);$('o_pay').textContent=s.pay.toFixed(2);$('o_hi').textContent=s.hi.toFixed(2);$('o_wl').textContent=s.wl;$('o_st').textContent=s.st+'%';$('o_mm').textContent=s.mm;$('o_eq').textContent=s.eq+'%';$('o_sp').textContent=s.sp;$('o_repl').textContent=s.repl+'% of a year\'s pay';
-  const vis=TEAMS.filter(t=>t.hc>=s.min), hid=TEAMS.length-vis.length;
-  const res=analyse(vis,s);
-  if(!selected||!res.some(r=>r.t.n===selected)) selected=res.length?res[0].t.n:null;
-  stats(res,s);
-  $('rows').innerHTML=res.map(r=>`<tr class="${r.t.n===selected?'sel':''}">
+function rowHtml(r,s){return `<tr class="${r.t.n===selected?'sel':''}">
     <td><button class="teambtn" data-t="${esc(r.t.n)}" aria-pressed="${r.t.n===selected}">${esc(r.t.n)}</button></td>
     <td class="num">${r.t.hc}</td>
+    <td class="num">${exits(r.t)}${HAS.regretted?` <span class="note">(${regN(r.t)})</span>`:''}</td>
     <td>${spark(r.A,40,90,'p')}</td>
     <td class="num">${fmtE(last(r.E))} <span class="note">${r.E[3]-r.E[2]<0?'▼':r.E[3]-r.E[2]>0?'▲':'■'}</span></td>
     <td>${r.mHide?`<span class="note">hidden, ${respM(r.t)} answered</span>`:spark(r.M,3.0,4.6,'m')}</td>
@@ -221,20 +305,32 @@ function render(){
     <td class="num">${last(r.t.resp)}% / ${last(r.t.mresp)}%</td>
     <td>${stPill(r)}</td>
     <td><span class="pill ${r.pair.lvl}">${r.pair.label}</span></td>
-    <td>${pills(r)}</td></tr>`).join('');
+    <td>${pills(r)}</td></tr>`}
+function render(){
+  const s=state();
+  [['pay','pay'],['equity','eq'],['drivers','items'],['cost','cost'],['structure','spans'],['early','lead']].forEach(([id,k])=>{$(id).style.display=HAS[k]?'':'none'});
+  $('o_min').textContent=s.min;$('o_drop').textContent=s.drop+' pts';$('o_skew').textContent='±'+s.skew.toFixed(2);
+  $('o_delta').textContent=s.delta+' pts';$('o_resp').textContent=s.minResp+'%';$('o_mdrop').textContent='±'+s.mdrop.toFixed(1);$('o_pay').textContent=s.pay.toFixed(2);$('o_hi').textContent=s.hi.toFixed(2);$('o_wl').textContent=s.wl;$('o_st').textContent=s.st+'%';$('o_mm').textContent=s.mm;$('o_eq').textContent=s.eq+'%';$('o_sp').textContent=s.sp;$('o_repl').textContent=s.repl+'% of a year\'s pay';$('o_rw').textContent=s.rw+'×';$('rw').disabled=!HAS.regretted;
+  const vis=TEAMS.filter(t=>t.hc>=s.min), hid=TEAMS.length-vis.length;
+  const res=analyse(vis,s);
+  if(!selected||!res.some(r=>r.t.n===selected)) selected=res.length?res[0].t.n:null;
+  stats(res,s);
+  LASTRES=res;LASTS=s;drawChips(res);drawRows(res,s);
   $('hiddenNote').textContent=(hid?`${hid} ${hid>1?'teams are':'team is'} hidden because ${hid>1?'they are':'it is'} under the minimum group size of ${s.min}. They are left out of every flag, the company figures and the charts. `:'No teams are hidden at this setting. ')+'Answered shows the pulse and the manager survey. eNPS is adjusted like the pulse. Compa is the average pay of the team against the market midpoint, amber at or below your pay line. Moves smaller than 3 pulse points are treated as steady.';
   document.querySelectorAll('.teambtn').forEach(b=>b.onclick=()=>{selected=b.dataset.t;render()});
-  brief(res);map(res);early(res,s);backtest(vis,s);detail(res,s);actions(res,s);equity(vis,s);drivers(res,s);cost(res,s);structure(res,s);leadlag(vis,s);payview(res,s);fromDataPanel(vis,s);
+  brief(res);map(res);early(res,s);backtest(vis,s);detail(res,s);actions(res,s);equity(vis,s);drivers(res,s);cost(res,s);structure(res,s);leadlag(vis,s);payview(res,s);fromDataPanel(vis,s);markChanged();labelTables();
 }
 function stats(res,s){
   if(!res.length){$('stats').innerHTML='<div class="stat"><span class="l">No teams visible at this minimum group size.</span></div>';return}
   const cp=i=>wavg(res,r=>r.A[i]),cm=i=>wavg(res.filter(r=>!r.mHide),r=>r.M[i]);
   const rp=i=>wavg(res,r=>r.t.resp[i]),rm=i=>wavg(res,r=>r.t.mresp[i]);
   const cnt=k=>res.filter(r=>r.status===k).length;
+  const nx=res.reduce((a,r)=>a+exits(r.t),0),rx=res.reduce((a,r)=>a+regN(r.t),0);
   $('stats').innerHTML=`
    <div class="stat"><span class="l">Act / Slipping / Watch</span><span class="v">${cnt('act')} / ${cnt('slip')} / ${cnt('watch')} <span class="note">of ${res.length}</span></span><span class="d flat">${cnt('stable')} stable</span></div>
    <div class="stat"><span class="l">Company pulse, adjusted</span><span class="v">${cp(3).toFixed(0)}%</span>${delta(cp(3)-cp(2),' pts',1,true)}</div>
    <div class="stat"><span class="l">Company manager score, adjusted</span><span class="v">${cm(3).toFixed(2)} <span class="note">of 5</span></span>${delta(cm(3)-cm(2),'',2,true)}</div>
+   <div class="stat"><span class="l">Exits, last 12 months</span><span class="v">${nx}</span><span class="d flat">${HAS.regretted?`${rx} regretted (${nx?(rx/nx*100).toFixed(0):0}%), ${nx-rx} other`:'regretted exits not provided'}</span></div>
    ${HAS.pay?`<div class="stat"><span class="l">Average compa-ratio</span><span class="v">${wavg(res,r=>r.t.compa).toFixed(2)}</span><span class="d flat">${wavg(res,r=>r.t.below).toFixed(0)}% of people below 0.90</span></div>`:`<div class="stat"><span class="l">Pay data</span><span class="v">–</span><span class="d flat">not provided</span></div>`}
    <div class="stat"><span class="l">Answered, pulse / manager</span><span class="v">${rp(3).toFixed(0)}% / ${rm(3).toFixed(0)}%</span>${delta(rp(3)-rp(2),' pts',1,true,true)}</div>`;
 }
@@ -267,7 +363,7 @@ function map(all){
   res.forEach(r=>{const ab=esc(r.t.n.split(' ').filter(w=>w!=='and').map(w=>w[0]).join('').slice(0,2));
     const cls=STATUS[r.status].dot,rad=3+Math.sqrt(r.t.hc)/1.6;
     g+=`<circle class="dot ${cls} ${r.t.n===selected?'sel':''}" cx="${X(r.M[3])}" cy="${Y(r.A[3])}" r="${rad}"><title>${esc(r.t.n)}</title></circle><text class="pt2" x="${X(r.M[3])+rad+2}" y="${Y(r.A[3])+3}">${ab}</text>`});
-  $('map').innerHTML=`<h3>Where each team sits <span>Pair map, this quarter</span></h3>
+  $('map').innerHTML=`<h3>Where each team sits <span>Pair map, this quarter</span></h3><p class="help">Each dot is a team. Across is the manager score and up is the pulse, so the lower left is where both are low. Dashed lines are the company averages.</p>
    <svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Manager effectiveness against pulse for each team, with dashed lines at the company averages">${g}</svg>
    <div class="legend"><span>Dot size is headcount.</span><span>Dashed lines are the company averages.</span><span>Color is the status: <b style="color:var(--accent)">Stable</b>, <b style="color:var(--c3)">Watch</b>, <b style="color:var(--warn)">Slipping</b>, <b style="color:var(--crit)">Act</b>.</span><span>The dotted trail is the selected team over four quarters.</span>${hiddenM?`<span>${hiddenM} team${hiddenM>1?'s are':' is'} left off because too few people answered the manager survey.</span>`:''}</div>`;
 }
@@ -298,7 +394,7 @@ function detail(res,s){
    ${range(mlo,mhi,m,mad,mlo.toFixed(1),mhi.toFixed(1),m.toFixed(1),pm)}`}
    <p class="note">The shaded range runs from every silent person being at the bottom of the scale to every one at the top. The amber mark is your assumption (pulse ${ad.toFixed(0)}, manager ${mad.toFixed(2)}). The lower the response, the wider the range.</p>`;
   /* facts */
-  const n=exits(t),mx=Math.max(...t.ex),b=t.ex.indexOf(mx);
+  const n=exits(t),bw=bandW(t,s),sw=bw.reduce((a,c)=>a+c,0),mw=Math.max(...bw),b=bw.indexOf(mw);
   $('facts').innerHTML=`<h3>Other facts for this team</h3><div class="facts">
    <span>People<b>${t.hc}</b></span>
    <span>Pulse margin of error<b>±${moe(t,3).toFixed(0)} points (${respN(t,3)} of ${t.hc} answered, 80% confidence)</b></span>
@@ -309,10 +405,10 @@ function detail(res,s){
    <span>Manager change, 6 months<b>${t.mc===null?'n/a':t.mc+'% of team'}${t.mnew===null?'':', manager '+t.mnew+' months in role'}</b></span>
    <span>Stalled promotions<b>${t.stale===null?'n/a':t.stale+'% of top-rated'}</b></span>
    <span>Workload index<b>${r.W.toFixed(0)} of 100${t.ot===null?' (overtime not tracked)':''}</b></span>
-   <span>Exits, last 12 months<b>${n} (${r.rate.toFixed(0)}% of headcount, plausible range ${r.rlo.toFixed(0)}% to ${r.rhi.toFixed(0)}%)</b></span>
-   <span>Exits by tenure<b>${HAS.tenure?t.ex.map((v,i)=>BUCKETS[i]+': '+(v>0&&v<3?'<3':v)).join('; '):'not provided'}</b></span>
-   <span>Exit timing<b>${n>=3&&mx/n>=0.6?`${mx} of ${n} at ${BUCKETS[b]}`:n?'no single cluster':'no exits'}</b></span>
+   <span>Exits, last 12 months<b>${n}${HAS.regretted?`, of which ${regN(t)} regretted`:''} (${r.raw.toFixed(0)}% of headcount${HAS.regretted&&s.rw!==1?`, ${r.rate.toFixed(0)}% counting regretted exits ${s.rw} times`:''}; plausible range ${r.rlo.toFixed(0)}% to ${r.rhi.toFixed(0)}%)</b></span>
+   <span>Exit timing<b>${n>=3&&sw>0&&mw/sw>=0.6?`${t.ex[b]} of ${n} at ${BUCKETS[b]}`:n?'no single cluster':'no exits'}</b></span>
    <span>Reference turnover<b>${s.bench}% a year</b></span></div>
+   ${HAS.tenure?`<h3 style="margin-top:6px">Exits by tenure</h3><table class="mini"><thead><tr><th>Tenure</th><th class="num">Exits</th>${t.exr?'<th class="num">Regretted</th><th class="num">Share</th>':''}</tr></thead><tbody>${t.ex.map((v,i)=>`<tr><td>${BUCKETS[i]}</td><td class="num">${lt3(v)}</td>${t.exr?`<td class="num">${lt3(t.exr[i])}</td><td class="num">${v>=3&&(t.exr[i]===0||t.exr[i]>=3)?Math.round(t.exr[i]/v*100)+'%':'–'}</td>`:''}</tr>`).join('')}</tbody></table>`:''}
    <p class="note">Exit and rating figures sit beside the survey scores because a signal rarely means much alone. Counts under 3 in a tenure split are shown as &lt;3, so a small cell cannot point to a person.</p>`;
   themes();
 }
@@ -335,18 +431,18 @@ function leadlag(vis,s){
   const word=(r,n)=>linkWord(r,n);
   const f=v=>v===null?'n/a':(v>0?'+':'')+v.toFixed(2);
   const meter=v=>v===null?'':`<div class="meter"><u></u><i style="left:calc(${(v+1)/2*100}% - 1px)"></i></div>`;
-  $('lead').innerHTML=`<h3>Does the manager score move first? <span>All visible teams, quarter-to-quarter changes</span></h3>
+  $('lead').innerHTML=`<h3>Does the manager score move first? <span>All visible teams, quarter-to-quarter changes</span></h3><p class="help">Across all teams, does the manager score fall before the pulse does? If it does, a dip in the manager score is an early warning.</p>
    <div class="leadlag">
     <div class="lrow"><div class="t"><span>Manager score change, same quarter as the pulse change</span><b>r ${f(rs)}</b></div>${meter(rs)}<span class="note">${word(rs,same[0].length)}, ${same[0].length} team-quarters</span></div>
     <div class="lrow"><div class="t"><span>Manager score change, then pulse change the next quarter</span><b>r ${f(rl)}</b></div>${meter(rl)}<span class="note">${word(rl,lead[0].length)}, ${lead[0].length} team-quarters</span></div>
    </div>
-   <p class="note">A positive number means that when a manager score falls, the pulse tends to fall too, in the same quarter or the next. If the second line were clearly stronger than the first, an early manager signal would deserve real weight. With so few teams and quarters, one team can swing both numbers. The range treats every team-quarter as independent, which they are not, so the real range is wider. The same people answer both surveys, which also pushes them up. Treat this as a question to test on real data, not a result.</p>`;
+   <details class="moreinfo"><summary>How to read this</summary><p class="note">A positive number means that when the manager score falls, the pulse tends to fall too, in the same quarter or the next. If the second line were clearly stronger than the first, an early manager signal would deserve real weight. With so few teams, one team can swing both, and the range is too narrow. Treat it as a question to test on real data, not a result.</p></details>`;
 }
 function early(res,s){
   if(!res.length){$('early').innerHTML='';return}
   const rows=res.slice().sort((a,b)=>b.leadN-a.leadN||b.W-a.W);
   const lp=r=>r.f.filter(x=>['mgrchg','promo','load','span'].includes(x.k));
-  $('early').innerHTML=`<h3>Early signals <span>Four groups: people change, career, load, structure</span></h3>
+  $('early').innerHTML=`<h3>Early signals <span>Four groups: people change, career, load, structure</span></h3><p class="help">Things that tend to change before the scores do. One alone is a prompt to ask a question. Two together, with nothing else moving, put a team on Watch.</p>
    <div class="tablewrap"><table style="min-width:920px"><thead><tr><th>Team</th><th>Status</th><th class="num">Manager changed</th><th class="num">Months in role</th><th class="num">Stalled promos</th><th class="num">Widest span</th><th class="num">Workload</th><th>Pace item</th><th>Early signals</th></tr></thead><tbody>`+
    rows.map(r=>{const t=r.t,wk='style="color:var(--warn)"';return `<tr class="${t.n===selected?'sel':''}">
      <td><button class="teambtn" data-t="${esc(t.n)}">${esc(t.n)}</button></td><td>${stPill(r)}</td>
@@ -355,7 +451,7 @@ function early(res,s){
      <td>${spark(t.pace,40,90,'e')}</td>
      <td>${lp(r).length?lp(r).map(x=>`<span class="pill ${x.lvl}">${x.tag}</span>`).join(''):'<span class="pill ok">quiet</span>'}</td></tr>`}).join('')+
    `</tbody></table></div>
-   <p class="note">These signals add context to a team's status. They change the status only when nothing else has fired: two or more of them, with no pulse fall, no manager fall, no falling response and no pay or exit flag, put a team on Watch. Manager changed and months in role belong to one group (people change), stalled promotions to a second (career), the workload index to a third (load), and the widest manager span to a fourth (structure). Workload is a 0 to 100 index from open roles, overtime where tracked, leave not taken and the pace question. Exits are left out of it because they have their own flag. Amber is past your setting.</p>`;
+   <details class="moreinfo"><summary>How signals decide the status</summary><p class="note">Signals add context to a status. They decide it only when nothing else has fired: two or more, with no pulse fall, manager fall, falling response, or pay or exit flag, put a team on Watch. Manager changed and months in role are one group, stalled promotions a second, workload a third and span a fourth. Amber is past your setting.</p></details>`;
   document.querySelectorAll('#early .teambtn').forEach(b=>b.onclick=()=>{selected=b.dataset.t;render()});
 }
 /* thresholds taken from the data itself. Spread is measured with the median absolute deviation, so the few teams that are already in trouble do not widen the line. */
@@ -386,7 +482,7 @@ function fromDataPanel(vis,s){
     <tr><td>Heavy workload from</td><td class="num">${s.wl}</td><td class="num">${d.wl}</td><td>Top quarter of teams</td></tr>
     <tr><td>Stalled promotions from</td><td class="num">${s.st}%</td><td class="num">${d.st===null?'n/a':d.st+'%'}</td><td>Top quarter of teams</td></tr></tbody></table></div>
    <button class="use" id="usefd" type="button">Use the values from the data</button>
-   <p class="note">Two caveats. Moves are measured across all visible teams, so the line is only as good as the history behind it: here, three quarters of ${MODE==='demo'?'invented':'your'} data. And a "top quarter" line will always flag some teams, even in a healthy company. With real data I would keep absolute floors beside it, set from past exits. Pay lines and the turnover reference stay outside, since they should come from market data, not from your own teams.</p>`;
+   <details class="moreinfo"><summary>Caveats</summary><p class="note">Two caveats. Moves are measured across visible teams, so the line is only as good as the history behind it (three quarters of ${MODE==='demo'?'invented':'your'} data), and a top-quarter line always flags some teams, even in a healthy company. With real data I would keep absolute floors beside it. Pay lines and the turnover reference stay outside, since they should come from market data.</p></details>`;
   $('usefd').onclick=()=>{$('drop').value=d.drop;$('mdrop').value=d.mdrop;$('wl').value=d.wl;if(d.st!==null)$('stale').value=d.st;render()};
 }
 /* follow-through log. Kept in this browser only. A real version needs shared storage, access rules and an audit trail. */
@@ -414,7 +510,7 @@ function actions(res,s){
   const rows=res.filter(r=>r.status!=='stable'||ACTIONS.some(x=>x.team===r.t.n));
   const sel=res.find(r=>r.t.n===selected);
   const mine=sel?ACTIONS.filter(x=>x.team===sel.t.n):[];
-  $('actions').innerHTML=`<h3>Follow-through <span>What was done about each flag</span></h3>
+  $('actions').innerHTML=`<h3>Follow-through <span>What was done about each flag</span></h3><p class="help">A flag without an owner and a date is only a worry. Log who will do what, and by when.</p>
    <div class="tablewrap"><table style="min-width:720px"><thead><tr><th>Team</th><th>Status now</th><th class="num">Open actions</th><th class="num">Overdue</th><th>Status when last action was raised</th><th></th></tr></thead><tbody>`+
    rows.map(r=>{const xs=ACTIONS.filter(x=>x.team===r.t.n),o=xs.filter(open).length,ov=xs.filter(over).length,lastA=xs[xs.length-1];
      const gap=r.status!=='stable'&&o===0;
@@ -425,7 +521,7 @@ function actions(res,s){
      <td><select data-id="${esc(x.id)}" aria-label="State of action">${STATES.map(z=>`<option${z===x.state?' selected':''}>${z}</option>`).join('')}</select></td><td><button class="x" type="button" data-del="${esc(x.id)}" aria-label="Remove action">Remove</button></td></tr>`).join('')+`</tbody></table></div>`:`<p class="note">No action logged for this team yet.</p>`)+
    `<div class="addrow"><label>Action<input type="text" id="a_what" maxlength="200" placeholder="What will be done"></label><label>Owner (a role)<input type="text" id="a_owner" maxlength="60" placeholder="For example, HR business partner"></label><label>Due<input type="date" id="a_due" value="${plus(14)}"></label><button class="go" type="button" id="a_add">Add action</button></div>`:'')+`</div>
    <div class="btnrow"><button class="x" type="button" id="a_dl">Download all actions as CSV</button></div>
-   <p class="note">Each flag should have an owner, an action and a date, and the next quarter should show whether the status moved. This card does that bookkeeping. It cannot show that the action caused the change. Log the action and a role, not names of employees. ${MODE==='demo'?'Entries are saved in this browser only, and the first three are invented examples.':'Entries are kept in memory only and disappear when you reload the page. Download them to keep them.'}</p>`;
+   <details class="moreinfo"><summary>About follow-through</summary><p class="note">Each flag should have an owner, an action and a date, and the next quarter should show whether the status moved. This card does the bookkeeping. It cannot show that the action caused the change. Log a role, not an employee's name. ${MODE==='demo'?'Entries are saved in this browser only, and the first three are invented.':'Entries are kept in memory only and disappear when you reload. Download them to keep them.'}</p></details>`;
   const box=$('actions');
   box.querySelectorAll('.teambtn').forEach(b=>b.onclick=()=>{selected=b.dataset.t;render()});
   box.querySelectorAll('select[data-id]').forEach(e=>e.onchange=()=>{const x=ACTIONS.find(y=>y.id===e.dataset.id);if(x){x.state=e.value;saveActions();render()}});
@@ -461,7 +557,7 @@ function equity(vis,s){
   const wk='style="color:var(--warn);font-weight:600"';
   const cell=(on,txt)=>`<td class="num" ${on?wk:''}>${txt}</td>`;
   const ratio=v=>v===null?'n/a':v===Infinity?'no men left':v.toFixed(2);
-  $('equity').innerHTML=`<h3>Equity lens <span>Do outcomes differ between women and men? Illustrative, one attribute</span></h3>
+  $('equity').innerHTML=`<h3>Equity lens <span>Do outcomes differ between women and men? Illustrative, one attribute</span></h3><p class="help">Compares women and men on pay, promotion, exits, pulse and response. It is for the people who own pay and fairness. A gap is a reason to look closer, not proof.</p>
    <div class="stats" style="margin-bottom:10px">
     <div class="stat"><span class="l">Company pay gap (women under men)</span><span class="v">${co.pay.toFixed(1)}%</span><span class="d flat">compa-ratio, ${W} women and ${M} men</span></div>
     <div class="stat"><span class="l">Promotion rate, women ÷ men</span><span class="v">${co.promo.toFixed(2)}</span><span class="d flat">${pw} women and ${pm} men promoted in 12 months</span></div>
@@ -473,8 +569,8 @@ function equity(vis,s){
      if(!c) return `<tr><td>${esc(t.n)}</td><td class="num">not shown</td><td colspan="6"><span class="note">One of the two groups is under ${s.min} people, so nothing is shown for this team.</span></td></tr>`;
      const e=c.e;return `<tr><td>${esc(t.n)}</td><td class="num">${c.w} / ${c.m}</td>${cell(c.fl.includes('pay'),e.pay.toFixed(1)+'%')}${cell(c.fl.includes('promotion'),ratio(c.promoRatio))}${cell(c.fl.includes('exits'),ratio(c.exitRatio))}${cell(c.fl.includes('pulse'),e.pg.toFixed(0)+' pts')}${cell(c.fl.includes('response'),e.rg.toFixed(0)+' pts')}<td>${c.fl.length?c.fl.map(z=>`<span class="pill warn">${z}</span>`).join(''):'<span class="pill ok">nothing flagged</span>'}</td></tr>`}).join('')+
    `</tbody></table></div>
-   <p class="note">Flags: pay gap at or above your setting (${s.eq}%), promotion rate for women under four-fifths of men's with at least 3 promotions, exit rate for women at least 1.5 times men's with at least 3 exits, a pulse gap of 8 points or more, and a response gap of 15 points or more. A gap is a reason to run a proper analysis. It does not show unfair treatment, since level, role, tenure and location can all create a gap on their own. Pooled company figures can hide gaps inside teams or create them from the mix of teams, so a real run compares people at the same level and role.</p>
-   <p class="note">Handle with care. This view shows one attribute and two groups, and leaves out people who do not fit either, which a real tool must not do carelessly. Only the people responsible for pay and fairness should see it, not line leaders. It is a separate lens and does not change a team's status. In the EU, treat it as a sensitive analysis with a stated purpose and a data protection assessment before it runs.</p>`;
+   <details class="moreinfo"><summary>What counts as a gap</summary><p class="note">Flags: pay gap at or above your setting (${s.eq}%), promotion rate for women under four-fifths of men's (at least 3 promotions), exit rate for women at least 1.5 times men's (at least 3 exits), a pulse gap of 8 points or more, a response gap of 15 points or more. A gap is a reason for a proper analysis, not proof of unfair treatment: level, role, tenure and location can all create one.</p></details>
+   <details class="moreinfo"><summary>Handle with care</summary><p class="note">Handle with care. One attribute, two groups, and people who fit neither are left out. Only the people responsible for pay and fairness should see it, not line leaders. It never changes a team's status. In the EU, treat it as a sensitive analysis with a stated purpose and a data protection assessment.</p></details>`;
 }
 /* ---------- driver analysis ---------- */
 function drivers(res,s){
@@ -497,9 +593,9 @@ function drivers(res,s){
     selHtml=`<h3 style="margin-top:14px">${esc(t.n)}, against the company</h3><div class="tablewrap"><table style="min-width:520px"><thead><tr><th>Item</th><th class="num">Team</th><th class="num">Company</th><th class="num">Gap</th><th class="num">Link with staying</th></tr></thead><tbody>`+
      list.map(x=>`<tr><td>${x.d.n}</td><td class="num">${x.v.toFixed(0)}%</td><td class="num">${x.d.co.toFixed(0)}%</td><td class="num" ${x.gap<=-8?'style="color:var(--warn);font-weight:600"':''}>${x.gap>0?'+':''}${x.gap.toFixed(0)}</td><td class="num">${x.d.r.toFixed(2)}</td></tr>`).join('')+
      `</tbody></table></div><p>${top.length?`Where to start in this team: <strong>${top.map(x=>x.d.n.toLowerCase()).join('</strong> and <strong>')}</strong>. These are the items furthest below the company that also move most with plans to stay across teams.`:'No item sits clearly below the company for this team.'}</p>`}
-  $('drivers').innerHTML=`<h3>What goes with plans to stay <span>Six pulse items against the question "I plan to be here in a year"</span></h3>
+  $('drivers').innerHTML=`<h3>What goes with plans to stay <span>Six pulse items against the question "I plan to be here in a year"</span></h3><p class="help">Which pulse items go with people saying they plan to stay. It shows where a conversation could start, not what makes people stay.</p>
    <div class="payscat"><div><div class="eyebrow">Link across teams, with 95% range</div><svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Correlation of each pulse item with plans to stay, one line per item">${g}</svg></div><div>${selHtml}</div></div>
-   <p class="note">This shows which items rise and fall together with plans to stay across ${res.length} teams. It does not show what causes people to stay. The items also move together (a good team scores well on most of them), so their order is weak evidence. With real data I would use person-level answers, kept confidential, and a method that separates items that overlap. The range is wide on this few teams. Treat the list as a place to start a conversation.</p>`;
+   <details class="moreinfo"><summary>How to read this</summary><p class="note">This shows which items rise and fall together with plans to stay across ${res.length} teams, not what causes people to stay. Items move together, so their order is weak evidence, and the range is wide on this few teams. Treat the list as a place to start a conversation.</p></details>`;
 }
 /* ---------- cost of exits ---------- */
 const money=v=>'€'+Math.round(v).toLocaleString('en-US');
@@ -508,7 +604,8 @@ function cost(res,s){
   const rows=res.map(r=>{const t=r.t,n=exits(t),per=t.sal*s.repl/100;return {t,n,xr:t.xr,per,total:n*per,reg:t.xr*per}}).sort((a,b)=>b.total-a.total);
   const T=rows.reduce((a,x)=>({n:a.n+x.n,xr:a.xr+x.xr,total:a.total+x.total,reg:a.reg+x.reg}),{n:0,xr:0,total:0,reg:0});
   const pooled=BUCKETS.map((_,i)=>res.reduce((a,r)=>a+r.t.ex[i],0)),mx=Math.max(...pooled,1);
-  $('cost').innerHTML=`<h3>What exits cost <span>Last 12 months, with the people the team wanted to keep shown separately</span></h3>
+  const pooledR=BUCKETS.map((_,i)=>res.reduce((a,r)=>a+(r.t.exr?r.t.exr[i]:0),0));
+  $('cost').innerHTML=`<h3>What exits cost <span>Last 12 months, with the people the team wanted to keep shown separately</span></h3><p class="help">A rough money figure, so the conversation is about more than a percentage. It rests on an assumption you can change in the settings.</p>
    <div class="stats" style="margin-bottom:10px">
     <div class="stat"><span class="l">Exits, last 12 months</span><span class="v">${T.n}</span><span class="d flat">${HAS.regretted?T.xr+' were people the team wanted to keep':'regretted exits not provided'}</span></div>
     <div class="stat"><span class="l">Estimated replacement cost</span><span class="v">${money(T.total)}</span><span class="d flat">at ${s.repl}% of a year's pay per person</span></div>
@@ -517,9 +614,9 @@ function cost(res,s){
    <div class="tablewrap"><table style="min-width:640px"><thead><tr><th>Team</th><th class="num">Exits</th><th class="num">To keep</th><th class="num">Average pay</th><th class="num">Cost per exit</th><th class="num">Estimated cost</th></tr></thead><tbody>`+
    rows.map(x=>`<tr class="${x.t.n===selected?'sel':''}"><td><button class="teambtn" data-t="${esc(x.t.n)}">${esc(x.t.n)}</button></td><td class="num">${x.n}</td><td class="num">${HAS.regretted?x.xr:'–'}</td><td class="num">${money(x.t.sal)}</td><td class="num">${money(x.per)}</td><td class="num">${money(x.total)}</td></tr>`).join('')+
    `</tbody></table></div>
-   ${HAS.tenure?'<div class="eyebrow" style="margin-top:12px">When exits happen, all visible teams together</div>':''}
-   <div style="display:${HAS.tenure?'grid':'none'};gap:6px;margin-top:6px">`+pooled.map((v,i)=>`<div style="display:grid;grid-template-columns:130px 1fr 28px;gap:8px;align-items:center;font-size:.82rem"><span>${BUCKETS[i]}</span><div class="bar"><i style="width:${v/mx*100}%"></i></div><span class="num">${v}</span></div>`).join('')+`</div>
-   <p class="note">The cost is an assumption, not a measurement: one share of a year's pay per exit, the same for everyone. It leaves out the lost knowledge and the time a role stays empty, which differ a lot by role. It shows what has already happened and is not a forecast. "To keep" needs a clear definition agreed with managers, or it becomes a judgment about the person who left.</p>`;
+   ${HAS.tenure?`<div class="eyebrow" style="margin-top:12px">When exits happen, all visible teams together${HAS.regTenure?' (dark: people the team wanted to keep)':''}</div>`:''}
+   <div style="display:${HAS.tenure?'grid':'none'};gap:6px;margin-top:6px">`+pooled.map((v,i)=>`<div class="tenrow"><span>${BUCKETS[i]}</span><div class="tbar"><i style="width:${v/mx*100}%"></i>${HAS.regTenure?`<u style="width:${pooledR[i]/mx*100}%"></u>`:''}</div><span class="num">${v}${HAS.regTenure?` <span class="note">· ${pooledR[i]} regretted${v?` (${Math.round(pooledR[i]/v*100)}%)`:''}</span>`:''}</span></div>`).join('')+`</div>
+   <details class="moreinfo"><summary>About this estimate</summary><p class="note">The cost is an assumption: one share of a year's pay per exit, the same for everyone. It leaves out lost knowledge and how long a role stays empty. It shows what has happened, not a forecast. The regretted-exit weight changes the flags, not this cost. "To keep" needs a definition agreed with managers, or it becomes a judgment about the person who left.</p></details>`;
   document.querySelectorAll('#cost .teambtn').forEach(b=>b.onclick=()=>{selected=b.dataset.t;render()});
 }
 /* ---------- structure ---------- */
@@ -528,26 +625,26 @@ function structure(res,s){
   const rows=res.map(r=>{const sp=r.t.spans,mx=Math.max(...sp),avg=sp.reduce((a,b)=>a+b,0)/sp.length;return {r,n:sp.length,mx,avg}}).sort((a,b)=>b.mx-a.mx);
   const use=rows.filter(x=>!x.r.mHide);
   const rr=pearson(use.map(x=>x.mx),use.map(x=>x.r.M[3]));
-  $('structure').innerHTML=`<h3>Manager spans <span>Direct reports per manager</span></h3>
+  $('structure').innerHTML=`<h3>Manager spans <span>Direct reports per manager</span></h3><p class="help">How many people report to each manager. A very wide span is a different problem from a weak manager score.</p>
    <div class="tablewrap"><table style="min-width:600px"><thead><tr><th>Team</th><th class="num">Managers</th><th class="num">Widest span</th><th class="num">Average span</th><th class="num">Manager score</th><th>Reads</th></tr></thead><tbody>`+
    rows.map(x=>`<tr class="${x.r.t.n===selected?'sel':''}"><td><button class="teambtn" data-t="${esc(x.r.t.n)}">${esc(x.r.t.n)}</button></td><td class="num">${x.n}</td><td class="num" ${x.mx>=s.sp?'style="color:var(--warn);font-weight:600"':''}>${x.mx}</td><td class="num">${x.avg.toFixed(1)}</td><td class="num">${x.r.mHide?'hidden':x.r.M[3].toFixed(2)}</td><td>${x.mx>=s.sp?'<span class="pill warn">Wide span</span>':x.mx<=2?'<span class="pill mute">very narrow</span>':'<span class="pill ok">within your line</span>'}</td></tr>`).join('')+
    `</tbody></table></div>
    <p>Widest span and manager score, across ${use.length} teams: <strong>r ${rr===null?'n/a':sgn(rr)}</strong>, ${linkWord(rr,use.length)}.</p>
-   <p class="note">Only the widest and average spans are shown, never a list per manager, so one manager's team cannot be picked out. A wide span is not bad by itself: it can work for a team of experienced people doing similar work. A very narrow span often means a manager who is also doing the work. This is a structural reading to bring to the leader, with the manager score beside it.</p>`;
+   <details class="moreinfo"><summary>How to read this</summary><p class="note">Only widest and average spans are shown, so one manager's team cannot be picked out. A wide span is not bad by itself, and a very narrow one often means a manager who is also doing the work. Read it with the manager score beside it.</p></details>`;
   document.querySelectorAll('#structure .teambtn').forEach(b=>b.onclick=()=>{selected=b.dataset.t;render()});
 }
 /* backtest: was a team flagged in a quarter, and did people leave in the next one? Only signals with a history in this data can be tested. */
 function backtest(vis,s){
   if(vis.length<6){$('backtest').innerHTML='';return}
   const rows=[];
-  let tot={fl:0,fp:0,fe:0,nf:0,np:0,ne:0,flHit:0};
+  let tot={fl:0,fp:0,fe:0,nf:0,np:0,ne:0,flHit:0,fre:0,nre:0};
   for(const q of [1,2]){
-    const r={q,fl:0,fp:0,fe:0,nf:0,np:0,ne:0,flHit:0};
+    const r={q,fl:0,fp:0,fe:0,nf:0,np:0,ne:0,flHit:0,fre:0,nre:0};
     vis.forEach(t=>{
       const A=t.pulse.map((_,i)=>adjP(t,i,s)),M=t.mgr.map((_,i)=>adjM(t,i,s));
       const flagged=(A[q]-A[q-1]<=-STEADY_PULSE)||(respM(t)>=s.mm&&M[q]-M[q-1]<=-s.mdrop)||(t.pace[q-1]-t.pace[q]>=5);
-      const e=t.exq[q+1];
-      if(flagged){r.fl++;r.fp+=t.hc;r.fe+=e;if(e>0)r.flHit++}else{r.nf++;r.np+=t.hc;r.ne+=e}
+      const e=t.exq[q+1],er=t.reg?t.reg[q+1]:0;
+      if(flagged){r.fl++;r.fp+=t.hc;r.fe+=e;r.fre+=er;if(e>0)r.flHit++}else{r.nf++;r.np+=t.hc;r.ne+=e;r.nre+=er}
     });
     rows.push(r);for(const k in tot)tot[k]+=r[k];
   }
@@ -556,10 +653,10 @@ function backtest(vis,s){
   const line=r=>{const fr=rate(r.fe,r.fp),nr=rate(r.ne,r.np),share=(r.fe+r.ne)?r.fe/(r.fe+r.ne)*100:0;
     return `<tr><td>${r.q===1||r.q===2?Q[r.q]+' to '+Q[r.q+1]:'Both'}</td><td class="num">${r.fl} of ${r.fl+r.nf}</td><td class="num">${r.fe} <span class="note">(${fr.toFixed(1)} per 100)</span></td><td class="num">${r.ne} <span class="note">(${nr.toFixed(1)} per 100)</span></td><td class="num">${r.fl?`${r.flHit} of ${r.fl}`:'n/a'}</td><td class="num">${share.toFixed(0)}%</td></tr>`};
   const b=rows[2],fr=rate(b.fe,b.fp),nr=rate(b.ne,b.np);
-  $('backtest').innerHTML=`<h3>Backtest <span>Flagged in one quarter, did people leave in the next?</span></h3>
+  $('backtest').innerHTML=`<h3>Backtest <span>Flagged in one quarter, did people leave in the next?</span></h3><p class="help">A check on the method: when a team was flagged, did more people leave the next quarter? A first look, not proof.</p>
    <div class="tablewrap"><table style="min-width:720px"><thead><tr><th>Window</th><th class="num">Teams flagged</th><th class="num">Exits next quarter, flagged</th><th class="num">Exits next quarter, not flagged</th><th class="num">Flagged teams with an exit</th><th class="num">Share of all exits</th></tr></thead><tbody>${rows.map(line).join('')}</tbody></table></div>
-   <p>${b.fl&&b.nf?`Across both windows, flagged teams lost ${fr.toFixed(1)} people per 100 in the following quarter, against ${nr.toFixed(1)} for the rest.`:'Too few flags to compare.'}</p>
-   <p class="note">Read this as a demonstration of the method, not as evidence. ${MODE==='demo'?'The exits are invented, so any gap here says nothing about real teams.':'With four quarters of history this is a first look, not a validated result.'} With this data only three signals have a history (a pulse fall, a manager score fall and a drop in the pace question), so they are what is tested: manager changes, promotions and open roles exist only as one snapshot here. There are two test windows and ${vis.length} teams, so a single exit changes the picture. This version reads four quarters. A real run needs eight or more, exits split into regretted and other, a confidence range on every rate, and quarters held back so the thresholds are not judged on the data that set them.</p>`;
+   <p>${b.fl&&b.nf?`Across both windows, flagged teams lost ${fr.toFixed(1)} people per 100 in the following quarter, against ${nr.toFixed(1)} for the rest.`:'Too few flags to compare.'}${HAS.regretted&&b.fl&&b.nf?` Of those exits, the people the team wanted to keep were ${rate(b.fre,b.fp).toFixed(1)} per 100 in flagged teams, against ${rate(b.nre,b.np).toFixed(1)} for the rest.`:''}</p>
+   <details class="moreinfo"><summary>How to read this</summary><p class="note">A demonstration of the method, not evidence. ${MODE==='demo'?'The exits are invented, so any gap says nothing about real teams.':'With four quarters this is a first look, not a validated result.'} Only three signals have a history here (a pulse fall, a manager score fall and a drop in the pace question). There are two test windows and ${vis.length} teams, so a single exit changes the picture. A real run needs eight or more quarters, a range on every rate, and quarters held back so thresholds are not judged on the data that set them.</p></details>`;
 }
 function scat(rows,yk,yl,yh,yfmt,ylab,s){
   const W=330,H=240,L=38,B=30,T=12,R=12,xl=0.85,xh=1.10;
@@ -596,22 +693,33 @@ function payview(res,s){
     <p><strong>Pay may be a factor</strong> (compa-ratio at or below ${s.pay.toFixed(2)}): ${lst(gp)}.</p>
     <p><strong>Look beyond pay</strong> (at or above ${s.hi.toFixed(2)} with few people under 0.90): ${lst(gb)}.</p>
     <p><strong>Unclear</strong> (near market): ${lst(gm)}.</p>
-    <p class="note">Low means eNPS at or below the company level, or down 10 points or more over two quarters. A team paid at or above market may still have pay gaps inside it, so this routes the first question and settles nothing.</p></div>`;
+    <p class="note">Low means eNPS at or below the company level, or down 10 points or more over two quarters. A team paid at or above market may still have gaps inside it, so this routes the first question and settles nothing.</p></div>`;
   const tr=pearson(res.map(r=>r.t.compa),res.map(r=>r.rate));
-  $('pay').innerHTML=`<h3>Does pay line up with engagement? <span>Total Rewards data, team level, this quarter</span></h3>
+  $('pay').innerHTML=`<h3>Does pay line up with engagement? <span>Total Rewards data, team level, this quarter</span></h3><p class="help">Does pay line up with how people feel? The teams far from the pattern are the interesting ones.</p>
    <div class="payscat"><div><div class="eyebrow">Compa-ratio and pulse</div>${a.svg}<p class="note"><b>r ${f(a.r)}</b>, ${word(a.r,a.n)}, ${a.n} teams</p></div>
    <div><div class="eyebrow">Compa-ratio and eNPS</div>${e.svg}<p class="note"><b>r ${f(e.r)}</b>, ${word(e.r,e.n)}, ${e.n} teams. The line is the best fit.</p></div></div>
    ${route}
    <div class="exc">${items.length?items.join(''):'<p class="note">No team sits far from the line at these settings.</p>'}<p class="note">Compa-ratio and turnover: r ${f(tr)}.</p></div>
-   <p class="note">A team that sits well below the line is where pay does not explain the score. A team that sits well above it is holding people for other reasons. Both are better questions than the correlation. The same people drive both numbers, and level, location and tenure mix can move compa-ratio without any change in how people are paid, so this shows a pattern to check with Total Rewards, not a cause. Pay data stays at team level and is hidden below the minimum group size.</p>`;
+   <details class="moreinfo"><summary>How to read this</summary><p class="note">A team well below the line is one where pay does not explain the score. A team well above it is holding people for other reasons. Both are better questions than the correlation. Level, location and tenure can move compa-ratio without any change in pay, so check with Total Rewards. Pay data stays at team level and is hidden below the minimum group size.</p></details>`;
 }
-['minGroup','drop','skew','bench','delta','minResp','mdrop','payT','payHi','wl','stale','minMgr','eqpay','span','repl'].forEach(id=>$(id).addEventListener('input',render));
+['minGroup','drop','skew','bench','delta','minResp','mdrop','payT','payHi','wl','stale','minMgr','eqpay','span','repl','rw'].forEach(id=>$(id).addEventListener('input',render));
+/* settings: mark what moved from the defaults, and reset them */
+const SLIDERS=['minGroup','minMgr','drop','mdrop','delta','minResp','payT','payHi','wl','stale','span','eqpay','repl','rw','skew','bench'];
+function markChanged(){let n=0;SLIDERS.forEach(id=>{const el=$(id),ch=el.defaultValue!==undefined&&String(el.value)!==String(el.defaultValue);const c=el.closest&&el.closest('.ctl');if(c)c.classList.toggle('changed',ch);if(ch)n++});
+  $('changedNote').textContent=n?n+(n>1?' settings are':' setting is')+' changed from the defaults':'All settings are at the defaults'}
+$('resetSettings').onclick=()=>{SLIDERS.forEach(id=>{$(id).value=$(id).defaultValue});render()};
+/* teams table: search and sort menu */
+$('teamSearch').addEventListener('input',()=>{QUERY=$('teamSearch').value.trim().toLowerCase();if(LASTRES)drawRows(LASTRES,LASTS)});
+$('sortSel').innerHTML=SORTOPTS.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('');
+$('sortSel').addEventListener('change',()=>{const v=$('sortSel').value;SORT=v?{k:v.split('|')[0],dir:+v.split('|')[1]}:{k:null,dir:1};render()});
+buildLegend();
 
 /* ---------- loading data ---------- */
 const FILE_LIMIT=5*1024*1024;
 function applyDataset(ds,mode){
   TEAMS=ds.teams;COMMENTS=ds.comments;Q=ds.quarters;HAS=ds.has;MODE=mode;selected=null;ACTIONS=null;
   $('qtr').textContent='Quarter ending '+last(Q);
+  $('upSum').textContent=mode==='demo'?'Using the demo data. Load your own data (it stays in this browser)':'Your data: '+TEAMS.length+' teams. Change files, or go back to the demo';
   $('dsnote').textContent=(mode==='demo'?'Demo data, invented. ':'')+TEAMS.length+' teams, four quarters ('+Q.join(', ')+')';
   $('modebanner').innerHTML=mode==='demo'
     ?'<strong>Demo data.</strong> Every team, number and comment here is invented. Load your own files below to look at real teams. Nothing you load leaves your browser.'
@@ -641,7 +749,7 @@ async function loadMine(){
   }
   const r=PSData.build(files);
   showMsg(r,'user');
-  if(r.ok){applyDataset(r.dataset,'user');render();$('dash').scrollIntoView&&$('dash').scrollIntoView({behavior:'smooth'})}
+  if(r.ok){applyDataset(r.dataset,'user');$('upBox').open=false;render();$('dash').scrollIntoView&&$('dash').scrollIntoView({behavior:'smooth'})}
 }
 function useDemo(){
   const r=PSData.build(window.PS_DEMO);
