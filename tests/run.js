@@ -69,7 +69,7 @@ function runApp(files) {
   vm.runInContext(read('src/data.js'), sandbox);
   sandbox.PS_DEMO = files; sandbox.PS_TEMPLATES = {};
   vm.runInContext(read('src/app.js'), sandbox);
-  return { els, text: k => (els[k].innerHTML || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() };
+  return { els, sandbox, text: k => (els[k].innerHTML || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() };
 }
 let sb;
 try { sb = runApp(demo); ok(true, 'the page renders with the demo data'); ok(sb.text('stats').includes('Act / Slipping / Watch 3 / 2 / 1'), 'the demo gives 3 Act, 2 Slipping, 1 Watch'); } catch (e) { ok(false, 'the page renders with the demo data: ' + e.message); }
@@ -97,6 +97,67 @@ try {
   const all = Object.values(sb2.els).map(e => e.innerHTML).join('');
   ok(!/<img src=x|<script>alert/.test(all) && /&lt;img/.test(all), 'HTML in team names and comments is shown as text, never as markup');
 } catch (e) { ok(false, 'escaping test: ' + e.message); }
+
+
+// 9. regretted exits: validation, tenure split, and the heavier weight
+{
+  const exT = (fn) => demo.exits_by_tenure.split('\n').map((l, i) => i === 0 || !l ? l : fn(l.split(','))).join('\n');
+  let r2 = D.build(Object.assign({}, demo, { exits_by_tenure: exT(c => c[0] === 'Sales' ? [c[0], c[1], c[2], c[3], c[4], '3', '0', '0', '0'].join(',') : c.join(',')) }));
+  ok(!r2.ok && /regretted count is larger than the exits in the same tenure band/.test(r2.errors.join()), 'a regretted count above the exits in its band is rejected');
+  const partial = exT(c => c.slice(0, 6).join(',')).replace('reg_m6_12,reg_m12_18,reg_over_18', '').replace(/,+$/gm, '');
+  r2 = D.build(Object.assign({}, demo, { exits_by_tenure: partial }));
+  ok(r2.ok && !r2.dataset.has.regTenure && /only some of the regretted columns/.test(r2.warnings.join()), 'only some regretted columns: warned, and the split is switched off');
+  ok(D.build(demo).dataset.has.regTenure === true, 'the demo has the regretted split by tenure');
+  const noQ = demo.quarterly.split('\n').map(l => l.split(',').slice(0, 9).join(',')).join('\n');
+  r2 = D.build(Object.assign({}, demo, { quarterly: noQ }));
+  ok(r2.ok && r2.dataset.has.regretted && r2.dataset.teams.find(t => t.n === 'Platform Engineering').xr === 3, 'regretted exits are taken from the tenure file when quarterly.csv has none');
+  /* a cluster that only shows up when regretted exits count more */
+  const qa = Object.assign({}, demo, { exits_by_tenure: exT(c => c[0] === 'Quality Assurance' ? [c[0], c[1], c[2], c[3], c[4], '0', '0', '0', '1'].join(',') : c.join(',')) });
+  const sbw = runApp(qa);
+  const hasCliff = rw => vm.runInContext(`(function(){const s=Object.assign(state(),{rw:${rw}});return analyse(TEAMS.filter(t=>t.hc>=s.min),s).find(r=>r.t.n==='Quality Assurance').f.some(x=>x.k==='cliff')})()`, sbw.sandbox);
+  ok(!hasCliff(1) && hasCliff(2), 'a regretted exit counts more: the exit cluster appears at weight 2 and not at weight 1');
+  const rateAt = rw => vm.runInContext(`(function(){const s=Object.assign(state(),{rw:${rw}});return analyse(TEAMS.filter(t=>t.hc>=s.min),s).find(r=>r.t.n==='Sales').rate})()`, sbw.sandbox);
+  const plain = vm.runInContext(`(function(){const t=TEAMS.find(t=>t.n==='Sales');return exits(t)/t.hc*100})()`, sbw.sandbox);
+  ok(rateAt(2) > rateAt(1) && Math.abs(rateAt(1) - plain) < 1e-9, 'weighted turnover rises with the weight, and weight 1 is the plain rate');
+  const noReg = Object.assign({}, demo, { quarterly: noQ, exits_by_tenure: exT(c => c.slice(0, 5).join(',')).replace(/,reg_[^\n]*/, '') });
+  const sbn = runApp(noReg);
+  const same = vm.runInContext(`(function(){const a=analyse(TEAMS.filter(t=>t.hc>=5),Object.assign(state(),{rw:1})),b=analyse(TEAMS.filter(t=>t.hc>=5),Object.assign(state(),{rw:3}));return a.every((x,i)=>x.rate===b[i].rate&&x.status===b[i].status)})()`, sbn.sandbox);
+  ok(same && vm.runInContext('HAS.regretted', sbn.sandbox) === false, 'with no regretted data the weight changes nothing');
+  ok(/regretted/.test(sbw.text('facts')) && /regretted/.test(sbw.text('cost')), 'the page shows regretted exits in the team detail and in the tenure bars');
+}
+
+// 9b. one-team view, equity third group, action plan title
+{
+  const r = runApp(demo);
+  const one = r.text('one');
+  ok(/Platform Engineering/.test(one) && /against the company/.test(one) && !/Field Deployment/.test(one), 'the one-team view shows the chosen team against the company and no other team');
+  ok(!/Equity lens|Women \/ men/.test(one), 'the one-team view leaves out the equity view');
+  const eq = r.text('equity');
+  ok(/Other or not stated/.test(eq) && /Three groups/.test(eq), 'the equity view shows a third group (other or not stated), pooled');
+  ok(/Action plan - Follow through/.test(r.text('actions')), 'the action card is titled Action plan - Follow through');
+  const sbx = r.sandbox;
+  const tiny = vm.runInContext(`(function(){const s=Object.assign(state(),{min:5});const vis=TEAMS.filter(t=>t.hc>=s.min);return vis.reduce((q,t)=>q+t.eq.o,0)})()`, sbx);
+  ok(tiny === 5, 'the demo has 5 people in the third group across visible teams');
+}
+
+// 10. every flag has a plain-language explanation, and the table filter works
+{
+  const app = read('src/app.js');
+  const tags = [...app.matchAll(/tag:'([^']+)'/g)].map(m => m[1]).concat(['Ratings high', 'Ratings low']);
+  const sbx = runApp(demo).sandbox;
+  const known = vm.runInContext('Object.keys(SIG_TIP)', sbx);
+  const missing = [...new Set(tags)].filter(x => !known.includes(x.toLowerCase()));
+  ok(!missing.length, 'every signal the page can raise is explained in the legend' + (missing.length ? ' (missing: ' + missing.join(', ') + ')' : ''));
+  const counts = vm.runInContext(`(function(){const s=state(),res=analyse(TEAMS.filter(t=>t.hc>=s.min),s),o={};['all','act','slip','watch','stable'].forEach(k=>{FILTER=k;o[k]=viewRows(res).length});FILTER='all';QUERY='data';o.q=viewRows(res).length;QUERY='';SORT={k:'team',dir:1};o.first=viewRows(res)[0].t.n;SORT={k:null,dir:1};return o})()`, sbx);
+  ok(counts.all === 14 && counts.act === 3 && counts.slip === 2 && counts.watch === 1 && counts.stable === 8 && counts.q === 1 && counts.first === 'Applied Robotics', 'the Teams table filters by status, searches by name and sorts');
+}
+
+// 11. no element id is used twice (a link or a lookup would hit the wrong one)
+{
+  const ids = [...read('index.html').matchAll(/\sid="([^"]+)"/g)].map(m => m[1]);
+  const dup = [...new Set(ids.filter((x, i) => ids.indexOf(x) !== i))];
+  ok(!dup.length, 'no id is used twice in index.html' + (dup.length ? ' (' + dup.join(', ') + ')' : ''));
+}
 
 // 8. no network requests anywhere in the code
 const code = read('index.html') + read('src/app.js') + read('src/data.js');
