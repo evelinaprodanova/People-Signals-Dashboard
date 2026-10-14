@@ -242,12 +242,13 @@ function spark(v,lo,hi,cls){
   const w=76,h=24,x=i=>3+i*(w-6)/(v.length-1),y=z=>h-3-(z-lo)/(hi-lo)*(h-6);
   return `<svg class="chart" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="${v.map(z=>z.toFixed(1)).join(', ')}"><polyline class="ln ${cls}" points="${v.map((z,i)=>x(i).toFixed(1)+','+y(z).toFixed(1)).join(' ')}"/><circle class="pt ${cls}" cx="${x(v.length-1).toFixed(1)}" cy="${y(last(v)).toFixed(1)}" r="2.5"/></svg>`;
 }
-function lineChart(raw,adj,lo,hi,cls,fmt){
-  const W=300,H=96,L=8,R=44,T=10,B=18;
+function lineChart(raw,adj,lo,hi,cls,fmt,cmp){
+  const W=300,H=96,L=22,R=44,T=10,B=18;
   const x=i=>L+i*(W-L-R)/3, y=z=>T+(1-(z-lo)/(hi-lo))*(H-T-B);
   const path=a=>a.map((z,i)=>x(i).toFixed(1)+','+y(z).toFixed(1)).join(' ');
   let g=`<line class="ax" x1="${L}" y1="${H-B}" x2="${W-R}" y2="${H-B}"/>`;
   Q.forEach((q,i)=>g+=`<text class="q" x="${x(i)}" y="${H-5}" text-anchor="middle">${q}</text>`);
+  if(cmp)g+=`<polyline class="cmp" points="${path(cmp)}"/>`;
   g+=`<polyline class="raw" points="${path(raw)}"/><polyline class="ln ${cls}" points="${path(adj)}"/>`;
   adj.forEach((z,i)=>g+=`<circle class="pt ${cls}" cx="${x(i)}" cy="${y(z)}" r="${i===3?3.4:2.2}"/>`);
   g+=`<text class="val" x="${x(3)+8}" y="${y(adj[3])+3}">${fmt(adj[3])}</text>`;
@@ -318,7 +319,7 @@ function render(){
   LASTRES=res;LASTS=s;drawChips(res);drawRows(res,s);
   $('hiddenNote').textContent=(hid?`${hid} ${hid>1?'teams are':'team is'} hidden because ${hid>1?'they are':'it is'} under the minimum group size of ${s.min}. They are left out of every flag, the company figures and the charts. `:'No teams are hidden at this setting. ')+'Answered shows the pulse and the manager survey. eNPS is adjusted like the pulse. Compa is the average pay of the team against the market midpoint, amber at or below your pay line. Moves smaller than 3 pulse points are treated as steady.';
   document.querySelectorAll('.teambtn').forEach(b=>b.onclick=()=>{selected=b.dataset.t;render()});
-  brief(res);map(res);early(res,s);backtest(vis,s);detail(res,s);actions(res,s);equity(vis,s);drivers(res,s);cost(res,s);structure(res,s);leadlag(vis,s);payview(res,s);fromDataPanel(vis,s);markChanged();labelTables();
+  brief(res);map(res);early(res,s);backtest(vis,s);detail(res,s);actions(res,s);oneTeam(res,s);equity(vis,s);drivers(res,s);cost(res,s);structure(res,s);leadlag(vis,s);payview(res,s);fromDataPanel(vis,s);markChanged();labelTables();
 }
 function stats(res,s){
   if(!res.length){$('stats').innerHTML='<div class="stat"><span class="l">No teams visible at this minimum group size.</span></div>';return}
@@ -334,11 +335,13 @@ function stats(res,s){
    ${HAS.pay?`<div class="stat"><span class="l">Average compa-ratio</span><span class="v">${wavg(res,r=>r.t.compa).toFixed(2)}</span><span class="d flat">${wavg(res,r=>r.t.below).toFixed(0)}% of people below 0.90</span></div>`:`<div class="stat"><span class="l">Pay data</span><span class="v">–</span><span class="d flat">not provided</span></div>`}
    <div class="stat"><span class="l">Answered, pulse / manager</span><span class="v">${rp(3).toFixed(0)}% / ${rm(3).toFixed(0)}%</span>${delta(rp(3)-rp(2),' pts',1,true,true)}</div>`;
 }
+function briefInner(r){
+  return `${r.status==='watch'?`<p><strong>Watch.</strong> Nothing has dropped yet, but ${r.leadN} early signals line up (${r.leadTags.join(', ')}).</p>`:r.f.length>=3?'<p><strong>Several signals point the same way.</strong> Start with the conversation, not the numbers.</p>':''}${r.f.slice(0,3).map(x=>`<p>${x.why}</p>`).join('')}${r.noisy?`<p class="note">The pulse move is smaller than the survey's margin of error (about ±${r.me1.toFixed(0)} points), so read it with the comments before acting.</p>`:''}${r.f.length?`<p class="ask">${r.f[0].ask}</p>`:''}`;
+}
 function brief(res){
   const top=res.filter(r=>r.f.length).slice(0,3);
   if(!top.length) $('brief').innerHTML='<p>Nothing is flagged at these settings. That does not mean nothing is wrong. It means these signals are quiet.</p>';
-  else $('brief').innerHTML=top.map(r=>{const crit=r.status==='act';
-    return `<div class="bcard ${crit?'crit':'warn'}"><h3>${esc(r.t.n)}</h3>${r.status==='watch'?`<p><strong>Watch.</strong> Nothing has dropped yet, but ${r.leadN} early signals line up (${r.leadTags.join(', ')}).</p>`:r.f.length>=3?'<p><strong>Several signals point the same way.</strong> Start with the conversation, not the numbers.</p>':''}${r.f.slice(0,3).map(x=>`<p>${x.why}</p>`).join('')}${r.noisy?`<p class="note">The pulse move is smaller than the survey's margin of error (about ±${r.me1.toFixed(0)} points), so read it with the comments before acting.</p>`:''}<p class="ask">${r.f[0].ask}</p></div>`}).join('');
+  else $('brief').innerHTML=top.map(r=>`<div class="bcard ${r.status==='act'?'crit':'warn'}"><h3>${esc(r.t.n)}</h3>${briefInner(r)}</div>`).join('');
   $('briefNote').textContent='What this cannot tell you: why people are leaving, who stayed silent, whether the people who left are the ones you wanted to keep, or whether a low manager score is the cause or the effect. Use it to decide where to have a conversation.';
 }
 function map(all){
@@ -370,14 +373,19 @@ function map(all){
 function detail(res,s){
   const r=res.find(x=>x.t.n===selected);
   if(!r){['trend','silence','facts','themes'].forEach(i=>$(i).innerHTML='');return}
-  const t=r.t;
-  $('detailTitle').textContent='Team detail: '+t.n;
+  const o=detailParts(r,s);
+  $('detailTitle').textContent='Team detail: '+r.t.n;
+  $('trend').innerHTML=o.trend;$('silence').innerHTML=o.silence;$('facts').innerHTML=o.facts;
+  themes();
+}
+function detailParts(r,s,cmp){
+  const t=r.t,out={};
   /* trend */
-  $('trend').innerHTML=`<h3>Pulse and manager, by quarter</h3>
-   <div class="eyebrow">Pulse, % favorable</div>${lineChart(t.pulse,r.A,40,90,'p',v=>v.toFixed(0))}
-   <div class="eyebrow">Manager effectiveness, of 5</div>${r.mHide?`<p class="note">Hidden. Only ${respM(t)} people answered the manager survey, below your minimum of ${s.mm}.</p>`:lineChart(t.mgr,r.M,3.0,4.6,'m',v=>v.toFixed(2))}
-   <div class="eyebrow">eNPS</div>${lineChart(t.enps,r.E,-30,60,'e',fmtE)}
-   <div class="legend"><span><i class="p"></i>Pulse</span><span><i class="m"></i>Manager</span><span><i class="e"></i>eNPS</span><span>All adjusted. Dashed: as answered</span></div>`;
+  out.trend=`<h3>Pulse and manager, by quarter</h3>
+   <div class="eyebrow">Pulse, % favorable</div>${lineChart(t.pulse,r.A,40,90,'p',v=>v.toFixed(0),cmp&&cmp.A)}
+   <div class="eyebrow">Manager effectiveness, of 5</div>${r.mHide?`<p class="note">Hidden. Only ${respM(t)} people answered the manager survey, below your minimum of ${s.mm}.</p>`:lineChart(t.mgr,r.M,3.0,4.6,'m',v=>v.toFixed(2),cmp&&cmp.M)}
+   <div class="eyebrow"><span class="kp">eNPS</span></div>${lineChart(t.enps,r.E,-30,60,'e',fmtE,cmp&&cmp.E)}
+   <div class="legend"><span><i class="p"></i>Pulse</span><span><i class="m"></i>Manager</span><span><i class="e"></i>eNPS</span><span>All adjusted. Thin dashed: as answered</span>${cmp?'<span><i class="c"></i>Company</span>':''}</div>`;
   /* silence */
   const rr=last(t.resp)/100,p=last(t.pulse),lo=p*rr,hi=p*rr+(1-rr)*100,ad=r.A[3];
   const mr=last(t.mresp)/100,m=last(t.mgr),mlo=m*mr+(1-mr)*1,mhi=m*mr+(1-mr)*5,mad=r.M[3];
@@ -385,7 +393,7 @@ function detail(res,s){
   const bars=t.resp.map((v,i)=>`<div class="${Math.min(v,t.mresp[i])<s.minResp?'low':''}"><span>${v}%</span><i style="height:${v*0.4}px"></i></div>`).join('');
   const range=(a,b,c,d,labA,labB,labC,fn)=>`<div class="rangebar" aria-hidden="true"><div class="span" style="left:${fn(a)}%;width:${fn(b)-fn(a)}%"></div><div class="mk" style="left:${fn(c)}%"></div><div class="mk adj" style="left:${fn(d)}%"></div>
      <span class="lab top" style="left:${fn(c)}%">answered ${labC}</span><span class="lab" style="left:${Math.max(fn(a),8)}%">${labA}</span><span class="lab" style="left:${Math.min(fn(b),95)}%">${labB}</span></div>`;
-  $('silence').innerHTML=`<h3>Who is not answering</h3>
+  out.silence=`<h3>Who is not answering</h3>
    <div class="respbars" aria-label="Pulse response rate over four quarters">${bars}</div>
    <p class="note">Pulse response, last four quarters. Amber means either survey fell below your low-response line.</p>
    <p>Pulse: <strong>${p}% favorable</strong> among the ${Math.round(t.hc*rr)} of ${t.hc} who answered.</p>
@@ -395,7 +403,7 @@ function detail(res,s){
    <p class="note">The shaded range runs from every silent person being at the bottom of the scale to every one at the top. The amber mark is your assumption (pulse ${ad.toFixed(0)}, manager ${mad.toFixed(2)}). The lower the response, the wider the range.</p>`;
   /* facts */
   const n=exits(t),bw=bandW(t,s),sw=bw.reduce((a,c)=>a+c,0),mw=Math.max(...bw),b=bw.indexOf(mw);
-  $('facts').innerHTML=`<h3>Other facts for this team</h3><div class="facts">
+  out.facts=`<h3>Other facts for this team</h3><div class="facts">
    <span>People<b>${t.hc}</b></span>
    <span>Pulse margin of error<b>±${moe(t,3).toFixed(0)} points (${respN(t,3)} of ${t.hc} answered, 80% confidence)</b></span>
    <span>Average rating<b>${HAS.ratings?`${mean(t).toFixed(1)} (company ${r.co.toFixed(1)})`:'not provided'}</b></span>
@@ -410,15 +418,18 @@ function detail(res,s){
    <span>Reference turnover<b>${s.bench}% a year</b></span></div>
    ${HAS.tenure?`<h3 style="margin-top:6px">Exits by tenure</h3><table class="mini"><thead><tr><th>Tenure</th><th class="num">Exits</th>${t.exr?'<th class="num">Regretted</th><th class="num">Share</th>':''}</tr></thead><tbody>${t.ex.map((v,i)=>`<tr><td>${BUCKETS[i]}</td><td class="num">${lt3(v)}</td>${t.exr?`<td class="num">${lt3(t.exr[i])}</td><td class="num">${v>=3&&(t.exr[i]===0||t.exr[i]>=3)?Math.round(t.exr[i]/v*100)+'%':'–'}</td>`:''}</tr>`).join('')}</tbody></table>`:''}
    <p class="note">Exit and rating figures sit beside the survey scores because a signal rarely means much alone. Counts under 3 in a tenure split are shown as &lt;3, so a small cell cannot point to a person.</p>`;
-  themes();
+  return out;
+}
+function themesHtml(name){
+  const cs=COMMENTS.filter(c=>c[0]===name);
+  if(!cs.length)return '<p class="note">No comments in this sample for the selected team.</p>';
+  const out=THEMES.map(([name,re])=>({name,hits:cs.filter(c=>re.test(c[1]))})).filter(x=>x.hits.length).sort((a,b)=>b.hits.length-a.hits.length);
+  return out.map(x=>`<div class="theme"><div class="row"><span>${x.name}</span><span>${x.hits.length} of ${cs.length}</span></div>
+    <div class="bar"><i style="width:${x.hits.length/cs.length*100}%"></i></div><q>${esc(x.hits[0][1])}</q></div>`).join('')+`<p class="note">${cs.length} sample comments.</p>`;
 }
 function themes(){
   $('themeTitle').textContent=selected?`Comment themes: ${selected}`:'Comment themes';
-  const cs=COMMENTS.filter(c=>c[0]===selected);
-  if(!cs.length){$('themes').innerHTML='<p class="note">No comments in this sample for the selected team.</p>';return}
-  const out=THEMES.map(([name,re])=>({name,hits:cs.filter(c=>re.test(c[1]))})).filter(x=>x.hits.length).sort((a,b)=>b.hits.length-a.hits.length);
-  $('themes').innerHTML=out.map(x=>`<div class="theme"><div class="row"><span>${x.name}</span><span>${x.hits.length} of ${cs.length}</span></div>
-    <div class="bar"><i style="width:${x.hits.length/cs.length*100}%"></i></div><q>${esc(x.hits[0][1])}</q></div>`).join('')+`<p class="note">${cs.length} sample comments.</p>`;
+  $('themes').innerHTML=themesHtml(selected);
 }
 function leadlag(vis,s){
   const same=[[],[]],lead=[[],[]];
@@ -510,7 +521,7 @@ function actions(res,s){
   const rows=res.filter(r=>r.status!=='stable'||ACTIONS.some(x=>x.team===r.t.n));
   const sel=res.find(r=>r.t.n===selected);
   const mine=sel?ACTIONS.filter(x=>x.team===sel.t.n):[];
-  $('actions').innerHTML=`<h3>Follow-through <span>What was done about each flag</span></h3><p class="help">A flag without an owner and a date is only a worry. Log who will do what, and by when.</p>
+  $('actions').innerHTML=`<h3>Action plan - Follow through <span>What was done about each flag</span></h3><p class="help">A flag without an owner and a date is only a worry. Log who will do what, and by when.</p>
    <div class="tablewrap"><table style="min-width:720px"><thead><tr><th>Team</th><th>Status now</th><th class="num">Open actions</th><th class="num">Overdue</th><th>Status when last action was raised</th><th></th></tr></thead><tbody>`+
    rows.map(r=>{const xs=ACTIONS.filter(x=>x.team===r.t.n),o=xs.filter(open).length,ov=xs.filter(over).length,lastA=xs[xs.length-1];
      const gap=r.status!=='stable'&&o===0;
@@ -521,7 +532,7 @@ function actions(res,s){
      <td><select data-id="${esc(x.id)}" aria-label="State of action">${STATES.map(z=>`<option${z===x.state?' selected':''}>${z}</option>`).join('')}</select></td><td><button class="x" type="button" data-del="${esc(x.id)}" aria-label="Remove action">Remove</button></td></tr>`).join('')+`</tbody></table></div>`:`<p class="note">No action logged for this team yet.</p>`)+
    `<div class="addrow"><label>Action<input type="text" id="a_what" maxlength="200" placeholder="What will be done"></label><label>Owner (a role)<input type="text" id="a_owner" maxlength="60" placeholder="For example, HR business partner"></label><label>Due<input type="date" id="a_due" value="${plus(14)}"></label><button class="go" type="button" id="a_add">Add action</button></div>`:'')+`</div>
    <div class="btnrow"><button class="x" type="button" id="a_dl">Download all actions as CSV</button></div>
-   <details class="moreinfo"><summary>About follow-through</summary><p class="note">Each flag should have an owner, an action and a date, and the next quarter should show whether the status moved. This card does the bookkeeping. It cannot show that the action caused the change. Log a role, not an employee's name. ${MODE==='demo'?'Entries are saved in this browser only, and the first three are invented.':'Entries are kept in memory only and disappear when you reload. Download them to keep them.'}</p></details>`;
+   <details class="moreinfo"><summary>About the action plan</summary><p class="note">Each flag should have an owner, an action and a date, and the next quarter should show whether the status moved. This card does the bookkeeping. It cannot show that the action caused the change. Log a role, not an employee's name. ${MODE==='demo'?'Entries are saved in this browser only, and the first three are invented.':'Entries are kept in memory only and disappear when you reload. Download them to keep them.'}</p></details>`;
   const box=$('actions');
   box.querySelectorAll('.teambtn').forEach(b=>b.onclick=()=>{selected=b.dataset.t;render()});
   box.querySelectorAll('select[data-id]').forEach(e=>e.onchange=()=>{const x=ACTIONS.find(y=>y.id===e.dataset.id);if(x){x.state=e.value;saveActions();render()}});
@@ -530,6 +541,51 @@ function actions(res,s){
   const add=$('a_add');
   if(add)add.onclick=()=>{const w=$('a_what').value.trim(),o=$('a_owner').value.trim(),d=$('a_due').value;if(!w||!o||!d)return;
     ACTIONS.push({id:'u'+Date.now(),team:sel.t.n,what:w.slice(0,200),owner:o.slice(0,60),due:d,state:'Not started',then:sel.status});saveActions();render()};
+}
+/* ---------- one team on its own: this team against the company and against its own past ---------- */
+function oneTeam(res,s){
+  const box=$('one');if(!box)return;
+  const sel=$('oneSel');
+  if(sel){sel.innerHTML=res.map(x=>`<option value="${esc(x.t.n)}"${x.t.n===selected?' selected':''}>${esc(x.t.n)} (${STATUS[x.status].label})</option>`).join('');
+    sel.onchange=()=>{selected=sel.value;render()}}
+  const r=res.find(x=>x.t.n===selected);
+  if(!r){box.innerHTML='<p class="note">No team to show at this minimum group size.</p>';return}
+  const t=r.t,vm=res.filter(x=>!x.mHide);
+  const cA=[0,1,2,3].map(i=>wavg(res,x=>x.A[i])),cM=vm.length?[0,1,2,3].map(i=>wavg(vm,x=>x.M[i])):null,cE=[0,1,2,3].map(i=>wavg(res,x=>x.E[i]));
+  const cR=[0,1,2,3].map(i=>wavg(res,x=>x.t.resp[i])),cMR=[0,1,2,3].map(i=>wavg(res,x=>x.t.mresp[i]));
+  const hcAll=res.reduce((q,x)=>q+x.t.hc,0),cX=[0,1,2,3].map(i=>res.reduce((q,x)=>q+x.t.exq[i],0)/hcAll*100);
+  const o=detailParts(r,s,{A:cA,M:r.mHide?null:cM,E:cE});
+  const mv=(v,dec,goodUp)=>{if(v===null||Math.abs(v)<Math.pow(10,-dec)/2)return '<span class="d flat">no change</span>';const good=goodUp?v>0:v<0;return `<span class="d ${good?'good':'bad'}">${v>0?'▲':'▼'} ${Math.abs(v).toFixed(dec)}</span>`};
+  /* [label, [now,last,first], company now, decimals, unit, good direction up?] */
+  const L=[
+   ['Pulse, adjusted',[r.A[3],r.A[2],r.A[0]],cA[3],0,'%',true],
+   ['Manager score, adjusted, of 5',r.mHide?null:[r.M[3],r.M[2],r.M[0]],cM?cM[3]:null,2,'',true],
+   ['eNPS, adjusted',[r.E[3],r.E[2],r.E[0]],cE[3],0,'',true],
+   ['Answered, pulse',[t.resp[3],t.resp[2],t.resp[0]],cR[3],0,'%',true],
+   ['Answered, manager survey',[t.mresp[3],t.mresp[2],t.mresp[0]],cMR[3],0,'%',true],
+   ['Exits per 100 people, in the quarter',[t.exq[3]/t.hc*100,t.exq[2]/t.hc*100,t.exq[0]/t.hc*100],cX[3],1,'',false]];
+  const f=(v,dec,u)=>v===null||v===undefined||isNaN(v)?'–':v.toFixed(dec)+u;
+  const fe=(lab,v,dec,u)=>lab.indexOf('eNPS')===0?fmtE(v):f(v,dec,u);
+  const cmpRows=L.map(([lab,h,c,dec,u,gu])=>{
+    if(!h)return `<tr><td>${lab}</td><td class="num" colspan="5"><span class="note">hidden, fewer than ${s.mm} answered</span></td></tr>`;
+    const dl=h[0]-h[1],vs=c===null?null:h[0]-c;
+    return `<tr><td>${lab}</td><td class="num"><b>${fe(lab,h[0],dec,u)}</b></td><td class="num">${fe(lab,h[1],dec,u)} ${mv(dl,dec,gu)}</td><td class="num">${fe(lab,h[2],dec,u)}</td><td class="num">${c===null?'–':fe(lab,c,dec,u)}</td><td class="num">${vs===null?'':mv(vs,dec,gu)}</td></tr>`}).join('');
+  const snap=[];
+  if(HAS.pay)snap.push(['Compa-ratio',t.compa.toFixed(2),wavg(res,x=>x.t.compa).toFixed(2)]);
+  if(HAS.ratings)snap.push(['Average rating, of 5',mean(t).toFixed(1),r.co.toFixed(1)]);
+  snap.push(['Workload index, of 100',r.W.toFixed(0),wavg(res,x=>x.W).toFixed(0)]);
+  const snapRows=snap.map(x=>`<tr><td>${x[0]}</td><td class="num"><b>${x[1]}</b></td><td class="num" colspan="3"><span class="note">one figure, no history</span></td><td class="num">${x[2]}</td><td class="num"></td></tr>`).join('');
+  const mine=ACTIONS?ACTIONS.filter(x=>x.team===t.n):[];
+  const today=dstr(ASOF);
+  box.innerHTML=`
+   <div class="onehead"><div><h3>${esc(t.n)} ${stPill(r)}</h3><p class="note">${t.hc} people. ${r.pair.label}.</p></div><div class="pillrow">${pills(r)}</div></div>
+   ${r.f.length?`<div class="bcard ${r.status==='act'?'crit':'warn'}">${briefInner(r)}</div>`:'<div class="bcard"><p>Nothing is flagged for this team. That does not mean nothing is wrong, only that these signals are quiet.</p></div>'}
+   <div class="panel"><h3>${esc(t.n)} against the company and against its own past</h3>
+    <div class="tablewrap"><table class="mini cmptab"><thead><tr><th>Measure</th><th class="num">${Q[3]}</th><th class="num">${Q[2]}, and the move</th><th class="num">${Q[0]}</th><th class="num">Company, ${Q[3]}</th><th class="num">Team against company</th></tr></thead><tbody>${cmpRows}${snapRows}</tbody></table></div>
+    <p class="note">Company figures cover the ${res.length} teams at or above the minimum group size of ${s.min}${r.mHide?'':', and the manager figure leaves out teams under the manager-survey minimum'}. Green means moving the better way, amber the worse way. A small move can be noise: this team's pulse margin of error is about ±${moe(t,3).toFixed(0)} points.</p></div>
+   <div class="detailgrid"><div class="panel">${o.trend}</div><div class="panel">${o.silence}</div><div class="panel">${o.facts}</div><div class="panel"><h3>Comment themes</h3><div class="themes">${themesHtml(t.n)}</div><p class="note">A simple keyword match groups the comments here. A person should check them before anyone else sees them.</p></div></div>
+   <div class="panel"><h3>Action plan <span class="note">for ${esc(t.n)}</span></h3>${mine.length?`<div class="tablewrap"><table class="mini"><thead><tr><th>Action</th><th>Owner</th><th>Due</th><th>State</th></tr></thead><tbody>${mine.map(x=>`<tr><td>${esc(x.what)}</td><td>${esc(x.owner)}</td><td class="num" ${x.state!=='Done'&&x.due<today?'style="color:var(--crit)"':''}>${esc(x.due)}</td><td>${esc(x.state)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="note">No actions logged for this team yet.</p>'}<p class="note">Add or change actions in the Whole company view, under Action plan.</p></div>
+   <p class="note">This page leaves out the equity view and every other team's results, so it is safe to show to one leader. It is still people data about a real team, so share it only with the leader who owns that team.</p>`;
 }
 /* ---------- equity ---------- */
 function eqGroups(t){const e=t.eq,m=t.hc-e.w-e.o;return {w:e.w,m,cw:e.cw,cm:e.cm,qw:e.qw,qm:e.qm,rw:e.rw,rm:e.rm}}
@@ -552,25 +608,40 @@ function equity(vis,s){
   let W=0,M=0,cw=0,cm=0,qw=0,qm=0,rw=0,rm=0,pw=0,pm=0,xw=0,xm=0;
   vis.forEach(t=>{const g=eqGroups(t),e=t.eq;W+=g.w;M+=g.m;cw+=g.cw*g.w;cm+=g.cm*g.m;qw+=g.qw*g.w;qm+=g.qm*g.m;rw+=g.rw*g.w;rm+=g.rm*g.m;pw+=e.pw;pm+=e.pm;xw+=e.xw;xm+=e.xm});
   const co={pay:(1-(cw/W)/(cm/M))*100,promo:(pw/W)/(pm/M),exit:(xw/W)/(xm/M),pg:qm/M-qw/W,rg:rm/M-rw/W};
+  /* third group: people who are another gender or not stated, pooled across the visible teams so a small group is not shown team by team */
+  const O=vis.reduce((q,t)=>q+t.eq.o,0),vo=vis.filter(t=>t.eq.og);
+  const Oo=vo.reduce((q,t)=>q+t.eq.o,0);
+  const ow=f=>vo.reduce((q,t)=>q+f(t.eq.og)*t.eq.o,0)/Oo;
+  const pct=(n,d)=>(n/d*100).toFixed(0)+'%';
+  const gRow=(lab,n,cp,pr,ex,pu,re,xp,xe)=>`<tr><td>${lab}</td><td class="num">${n}</td><td class="num">${cp.toFixed(2)}</td><td class="num">${pct(pr,n)} <span class="note">(${lt3(xp)})</span></td><td class="num">${pct(ex,n)} <span class="note">(${lt3(xe)})</span></td><td class="num">${pu.toFixed(0)}%</td><td class="num">${re.toFixed(0)}%</td></tr>`;
+  const otherRow=O===0?`<tr><td>Other or not stated</td><td class="num" colspan="6"><span class="note">nobody in the visible teams</span></td></tr>`
+    :O<s.min?`<tr><td>Other or not stated</td><td class="num" colspan="6"><span class="note">${O} people in all, under the minimum group size of ${s.min}, so nothing is shown</span></td></tr>`
+    :Oo<s.min?`<tr><td>Other or not stated</td><td class="num">${O}</td><td class="num" colspan="5"><span class="note">outcome columns missing for most of them, so only the count is shown</span></td></tr>`
+    :gRow('Other or not stated',Oo,ow(g=>g.co),vo.reduce((q,t)=>q+t.eq.og.po,0),vo.reduce((q,t)=>q+t.eq.og.xo,0),ow(g=>g.qo),ow(g=>g.ro),vo.reduce((q,t)=>q+t.eq.og.po,0),vo.reduce((q,t)=>q+t.eq.og.xo,0));
+  const threeTable=`<h4 class="sub3">Three groups, all visible teams together</h4><div class="tablewrap"><table class="mini"><thead><tr><th>Group</th><th class="num">People</th><th class="num">Compa-ratio</th><th class="num">Promoted, 12 months</th><th class="num">Left, 12 months</th><th class="num">Pulse, favorable</th><th class="num">Answered</th></tr></thead><tbody>`+
+    gRow('Women',W,cw/W,pw,xw,qw/W,rw/W,pw,xw)+gRow('Men',M,cm/M,pm,xm,qm/M,rm/M,pm,xm)+otherRow+`</tbody></table></div>
+   <p class="note">Pooled so a small group is not shown team by team. Counts under 3 show as &lt;3. A group this small gives noisy rates, so read them as a prompt to look, not as a finding.</p>`;
   const rows=vis.map(t=>({t,c:eqCalc(t,s)}));
   const shown=rows.filter(x=>x.c),flagged=shown.filter(x=>x.c.fl.length);
   const wk='style="color:var(--warn);font-weight:600"';
   const cell=(on,txt)=>`<td class="num" ${on?wk:''}>${txt}</td>`;
   const ratio=v=>v===null?'n/a':v===Infinity?'no men left':v.toFixed(2);
-  $('equity').innerHTML=`<h3>Equity lens <span>Do outcomes differ between women and men? Illustrative, one attribute</span></h3><p class="help">Compares women and men on pay, promotion, exits, pulse and response. It is for the people who own pay and fairness. A gap is a reason to look closer, not proof.</p>
+  $('equity').innerHTML=`<h3>Equity lens <span>Do outcomes differ by gender? Illustrative, one attribute</span></h3><p class="help">Compares women, men, and people who are another gender or have not said, on pay, promotion, exits, pulse and response. The team table compares women with men. The third group is shown for all teams together, so a small group stays private. It is for the people who own pay and fairness. A gap is a reason to look closer, not proof.</p>
    <div class="stats" style="margin-bottom:10px">
     <div class="stat"><span class="l">Company pay gap (women under men)</span><span class="v">${co.pay.toFixed(1)}%</span><span class="d flat">compa-ratio, ${W} women and ${M} men</span></div>
     <div class="stat"><span class="l">Promotion rate, women ÷ men</span><span class="v">${co.promo.toFixed(2)}</span><span class="d flat">${pw} women and ${pm} men promoted in 12 months</span></div>
     <div class="stat"><span class="l">Exit rate, women ÷ men</span><span class="v">${co.exit.toFixed(2)}</span><span class="d flat">${xw} women and ${xm} men left in 12 months</span></div>
     <div class="stat"><span class="l">Teams with a gap to look at</span><span class="v">${flagged.length} <span class="note">of ${shown.length} shown</span></span><span class="d flat">${rows.length-shown.length} hidden: a group is under ${s.min}</span></div>
    </div>
+   ${threeTable}
+   <h4 class="sub3">Women and men, team by team</h4>
    <div class="tablewrap"><table style="min-width:860px"><thead><tr><th>Team</th><th class="num">Women / men</th><th class="num">Pay gap</th><th class="num">Promotion, women ÷ men</th><th class="num">Exit rate, women ÷ men</th><th class="num">Pulse gap</th><th class="num">Response gap</th><th>Reads</th></tr></thead><tbody>`+
    rows.map(({t,c})=>{
      if(!c) return `<tr><td>${esc(t.n)}</td><td class="num">not shown</td><td colspan="6"><span class="note">One of the two groups is under ${s.min} people, so nothing is shown for this team.</span></td></tr>`;
      const e=c.e;return `<tr><td>${esc(t.n)}</td><td class="num">${c.w} / ${c.m}</td>${cell(c.fl.includes('pay'),e.pay.toFixed(1)+'%')}${cell(c.fl.includes('promotion'),ratio(c.promoRatio))}${cell(c.fl.includes('exits'),ratio(c.exitRatio))}${cell(c.fl.includes('pulse'),e.pg.toFixed(0)+' pts')}${cell(c.fl.includes('response'),e.rg.toFixed(0)+' pts')}<td>${c.fl.length?c.fl.map(z=>`<span class="pill warn">${z}</span>`).join(''):'<span class="pill ok">nothing flagged</span>'}</td></tr>`}).join('')+
    `</tbody></table></div>
    <details class="moreinfo"><summary>What counts as a gap</summary><p class="note">Flags: pay gap at or above your setting (${s.eq}%), promotion rate for women under four-fifths of men's (at least 3 promotions), exit rate for women at least 1.5 times men's (at least 3 exits), a pulse gap of 8 points or more, a response gap of 15 points or more. A gap is a reason for a proper analysis, not proof of unfair treatment: level, role, tenure and location can all create one.</p></details>
-   <details class="moreinfo"><summary>Handle with care</summary><p class="note">Handle with care. One attribute, two groups, and people who fit neither are left out. Only the people responsible for pay and fairness should see it, not line leaders. It never changes a team's status. In the EU, treat it as a sensitive analysis with a stated purpose and a data protection assessment.</p></details>`;
+   <details class="moreinfo"><summary>Handle with care</summary><p class="note">Handle with care. One attribute, and the third group (another gender or not stated) is small, so it is pooled and hidden below the minimum group size. Never guess anyone's gender to fill it: leave people as not stated. Only the people responsible for pay and fairness should see it, not line leaders. It never changes a team's status. In the EU, treat it as a sensitive analysis with a stated purpose and a data protection assessment.</p></details>`;
 }
 /* ---------- driver analysis ---------- */
 function drivers(res,s){
@@ -697,7 +768,7 @@ function payview(res,s){
   const tr=pearson(res.map(r=>r.t.compa),res.map(r=>r.rate));
   $('pay').innerHTML=`<h3>Does pay line up with engagement? <span>Total Rewards data, team level, this quarter</span></h3><p class="help">Does pay line up with how people feel? The teams far from the pattern are the interesting ones.</p>
    <div class="payscat"><div><div class="eyebrow">Compa-ratio and pulse</div>${a.svg}<p class="note"><b>r ${f(a.r)}</b>, ${word(a.r,a.n)}, ${a.n} teams</p></div>
-   <div><div class="eyebrow">Compa-ratio and eNPS</div>${e.svg}<p class="note"><b>r ${f(e.r)}</b>, ${word(e.r,e.n)}, ${e.n} teams. The line is the best fit.</p></div></div>
+   <div><div class="eyebrow">Compa-ratio and <span class="kp">eNPS</span></div>${e.svg}<p class="note"><b>r ${f(e.r)}</b>, ${word(e.r,e.n)}, ${e.n} teams. The line is the best fit.</p></div></div>
    ${route}
    <div class="exc">${items.length?items.join(''):'<p class="note">No team sits far from the line at these settings.</p>'}<p class="note">Compa-ratio and turnover: r ${f(tr)}.</p></div>
    <details class="moreinfo"><summary>How to read this</summary><p class="note">A team well below the line is one where pay does not explain the score. A team well above it is holding people for other reasons. Both are better questions than the correlation. Level, location and tenure can move compa-ratio without any change in pay, so check with Total Rewards. Pay data stays at team level and is hidden below the minimum group size.</p></details>`;

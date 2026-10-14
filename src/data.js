@@ -66,12 +66,12 @@
       need: ['team', 'quarter', 'pulse_favorable', 'pulse_response', 'manager_score', 'manager_response', 'enps', 'pace_favorable', 'exits'],
       optional: ['regretted_exits']
     },
-    exits_by_tenure: { file: 'exits_by_tenure.csv', required: false, need: ['team', 'under_6m', 'm6_12', 'm12_18', 'over_18'], optional: [] },
+    exits_by_tenure: { file: 'exits_by_tenure.csv', required: false, need: ['team', 'under_6m', 'm6_12', 'm12_18', 'over_18'], optional: ['reg_under_6m', 'reg_m6_12', 'reg_m12_18', 'reg_over_18'] },
     items: { file: 'items.csv', required: false, need: ['team', 'growth_career', 'workload_pace', 'manager_support', 'tools_process', 'recognition', 'pay_fairness', 'plan_to_stay'], optional: [] },
     groups: {
       file: 'groups.csv', required: false,
       need: ['team', 'women', 'promoted_women', 'promoted_men', 'exits_women', 'exits_men', 'compa_women', 'compa_men', 'pulse_women', 'pulse_men', 'response_women', 'response_men'],
-      optional: ['other']
+      optional: ['other', 'promoted_other', 'exits_other', 'compa_other', 'pulse_other', 'response_other']
     },
     comments: { file: 'comments.csv', required: false, need: ['team', 'comment'], optional: [] }
   };
@@ -199,20 +199,38 @@
     if (!has.spans) teams.forEach(t => { t.spans = null; });
     if (!has.cost) teams.forEach(t => { t.sal = null; });
 
-    teams.forEach(t => { t.ex = [0, 0, 0, 0]; t.eq = null; t.drv = null; t.stay = null; t.xr = t.reg ? t.reg.reduce((a, b) => a + b, 0) : 0; });
+    teams.forEach(t => { t.ex = [0, 0, 0, 0]; t.exr = null; t.eq = null; t.drv = null; t.stay = null; t.xr = t.reg ? t.reg.reduce((a, b) => a + b, 0) : 0; });
 
     if (T.exits_by_tenure) {
       const got = {};
+      const RC = ['reg_under_6m', 'reg_m6_12', 'reg_m12_18', 'reg_over_18'];
+      const rcHave = RC.filter(c => T.exits_by_tenure.headers.indexOf(c) >= 0);
+      const hasRT = rcHave.length === 4;
+      if (rcHave.length > 0 && !hasRT) warn('exits_by_tenure.csv has only some of the regretted columns (reg_under_6m, reg_m6_12, reg_m12_18, reg_over_18). Add all four or none, so the regretted split by tenure is switched off');
       T.exits_by_tenure.rows.forEach(r => {
         const t = byName[r.team]; if (!t) { warn(`exits_by_tenure.csv, row ${r.__line}: team "${r.team}" is not in teams.csv`); return; }
         const f = 'exits_by_tenure.csv';
         t.ex = ['under_6m', 'm6_12', 'm12_18', 'over_18'].map(c => val(f, r, c, 0, 10000, { required: true, int: true }) || 0); got[t.n] = 1;
+        if (hasRT) {
+          t.exr = RC.map(c => val(f, r, c, 0, 10000, { int: true }) || 0);
+          if (t.exr.some((v, i) => v > t.ex[i])) err(f, r.__line, 'a regretted count is larger than the exits in the same tenure band');
+        }
       });
       has.tenure = teams.every(t => got[t.n]);
       if (!has.tenure) warn('exits_by_tenure.csv does not cover every team, so the tenure view is switched off');
       teams.forEach(t => { if (got[t.n] && t.exq && t.exq.every(v => v !== null)) { const a = t.ex.reduce((x, y) => x + y, 0), b = t.exq.reduce((x, y) => x + y, 0); if (a !== b) warn(`"${t.n}": exits by tenure add up to ${a}, but quarterly exits add up to ${b}`); } });
-      if (!has.tenure) teams.forEach(t => { t.ex = [0, 0, 0, 0]; });
+      if (!has.tenure) teams.forEach(t => { t.ex = [0, 0, 0, 0]; t.exr = null; });
+      has.regTenure = has.tenure && hasRT && teams.every(t => t.exr);
+      if (has.regTenure) {
+        teams.forEach(t => {
+          const sr = t.exr.reduce((a, b) => a + b, 0);
+          if (hasRegret && sr !== t.xr) warn(`"${t.n}": regretted exits by tenure add up to ${sr}, but regretted exits in quarterly.csv add up to ${t.xr}`);
+          if (!hasRegret) t.xr = sr;
+        });
+        if (!hasRegret) has.regretted = true;
+      } else teams.forEach(t => { t.exr = null; });
     }
+    has.regTenure = !!has.regTenure;
 
     if (T.items) {
       const got = {};
@@ -241,7 +259,13 @@
         };
         if (Object.keys(g).every(k => g[k] !== null)) {
           if (g.w + g.o > t.hc) err(f, r.__line, `women (${g.w}) and other (${g.o}) are more than the headcount of ${t.hc}`);
-          else { t.eq = g; got[t.n] = 1; }
+          else {
+            /* the third group: outcomes for people who are another gender or not stated. Optional, and only read when there are such people. */
+            const og = { po: val(f, r, 'promoted_other', 0, 100000, { int: true }), xo: val(f, r, 'exits_other', 0, 100000, { int: true }), co: val(f, r, 'compa_other', 0.5, 2),
+              qo: val(f, r, 'pulse_other', 0, 100), ro: val(f, r, 'response_other', 0, 100) };
+            g.og = g.o > 0 && Object.keys(og).every(k => og[k] !== null) ? og : null;
+            t.eq = g; got[t.n] = 1;
+          }
         }
       });
       has.eq = teams.every(t => got[t.n]);
