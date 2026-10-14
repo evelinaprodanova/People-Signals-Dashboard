@@ -1,16 +1,16 @@
-team,under_6m,m6_12,m12_18,over_18
-Platform Engineering,0,2,3,1
-Applied Robotics,1,0,1,1
-Customer Success,0,1,1,1
-Field Deployment,0,1,5,1
-Sales,2,2,1,0
-People and Operations,0,0,1,0
-Hardware Design,0,1,2,0
-Supply Chain,0,1,1,1
-Marketing,0,0,1,0
-Legal and Compliance,0,0,0,0
-Data and ML,0,1,1,0
-Manufacturing Support,1,2,2,1
-Finance,0,0,0,1
-Quality Assurance,0,1,1,2
-IT and Security,0,0,1,0
+team,under_6m,m6_12,m12_18,over_18,reg_under_6m,reg_m6_12,reg_m12_18,reg_over_18
+Platform Engineering,0,2,3,1,0,1,2,0
+Applied Robotics,1,0,1,1,1,0,0,0
+Customer Success,0,1,1,1,0,0,0,1
+Field Deployment,0,1,5,1,0,0,2,0
+Sales,2,2,1,0,1,1,0,0
+People and Operations,0,0,1,0,0,0,0,0
+Hardware Design,0,1,2,0,0,1,1,0
+Supply Chain,0,1,1,1,0,1,0,0
+Marketing,0,0,1,0,0,0,0,0
+Legal and Compliance,0,0,0,0,0,0,0,0
+Data and ML,0,1,1,0,0,0,1,0
+Manufacturing Support,1,2,2,1,1,0,1,0
+Finance,0,0,0,1,0,0,0,0
+Quality Assurance,0,1,1,2,0,1,0,0
+IT and Security,0,0,1,0,0,0,1,0
