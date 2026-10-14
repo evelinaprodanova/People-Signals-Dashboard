@@ -16,8 +16,8 @@ A score describes only the people who answered. For each score the page assumes 
 | Pay and eNPS | Compa-ratio at or below 0.93 and eNPS at or below the company level, or down 10 points over two quarters. |
 | Look beyond pay | Compa-ratio at or above 1.05 with at most 10% of the team under 0.90, and eNPS low or falling. |
 | Ratings high / low | Average rating differs from the company average by 0.35 or more. A prompt for calibration, not a status. |
-| Exit cluster | At least 3 exits in 12 months and 60% or more at one tenure point. |
-| Turnover high | Exits in 12 months, as a share of headcount, are above the reference (default 15%) even at the low end of a 95% range for the exit count. |
+| Exit cluster | At least 3 exits in 12 months and 60% or more at one tenure point. When the regretted split by tenure is provided, each regretted exit counts as many times as the weight setting (default 2) when finding the cluster. |
+| Turnover high | Exits in 12 months, as a share of headcount, are above the reference (default 15%) even at the low end of a 95% range for the exit count. When regretted exits are provided, each one counts as many times as the weight setting (default 2). |
 | Too few exits to call | The rate is more than 5 points over the reference but the range includes it. Shown, but not counted in the status. |
 | New manager | 30% or more of the team had a manager change in 6 months, or the manager has been in role under 3 months. |
 | Stalled promotions | 40% or more of top-rated people with no promotion or pay change in 18 months or more. |
@@ -60,9 +60,19 @@ For teams where both groups meet the minimum size: pay gap (women's compa-ratio 
 
 Correlation of each of six pulse items with the plan-to-stay question across teams, with a 95% range. For the selected team, the items furthest below the company that also correlate most with staying are listed as places to start. Items that move together make the ranking weak evidence, and correlation is not cause.
 
+## Regretted exits
+
+An exit is regretted when the team wanted to keep the person. The count comes from `regretted_exits` in quarterly.csv, or from the four `reg_` columns in exits_by_tenure.csv. If both are given they should agree.
+
+- **Weight.** Weighted exits = other exits + weight × regretted exits. The weight is a setting from 1 to 4, default 2. At 1 every exit counts once, and with no regretted data the weight changes nothing. The default is a judgment, not a measured value.
+- **Turnover.** The weighted count over headcount is compared with the reference. The plausible range treats the weighted count as a scaled Poisson count with the same mean and variance (variance = other exits + weight² × regretted exits). It is an approximation, and a flag needs the whole range above the reference.
+- **Exit cluster.** The 60% rule is applied to weighted exits per tenure band, so a cluster of regretted exits at one point shows up sooner than a cluster of other exits.
+- **Tenure bands.** Regretted exits are shown inside each band, for the team and for all visible teams together. Counts under 3 are shown as <3.
+- **Not weighted.** The cost of exits and the backtest use plain counts. The backtest adds the regretted exits as a separate line.
+
 ## Cost of exits
 
-Exits in 12 months × average pay × an assumed share (default 50%). The share is an assumption.
+Exits in 12 months × average pay × an assumed share (default 50%). The share is an assumption. Regretted exits are shown apart. The weight on regretted exits does not change the cost.
 
 ## Backtest
 
