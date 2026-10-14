@@ -277,6 +277,14 @@ details.drop .dropbody{padding:20px 24px 24px}
 .limits{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .limit{background:var(--bg);box-shadow:none}
 @media(max-width:560px){details.drop .sumhint{display:none}}
+/* ---- tenure bars ---- */
+table.mini{min-width:0;width:100%;font-size:.84rem}
+table.mini th,table.mini td{padding:5px 8px}
+.tenrow{display:grid;grid-template-columns:130px 1fr minmax(120px,auto);gap:10px;align-items:center;font-size:.84rem}
+.tbar{position:relative;height:10px;background:var(--line);border-radius:5px;overflow:hidden}
+.tbar i{position:absolute;left:0;top:0;height:100%;background:var(--accent);opacity:.45}
+.tbar u{position:absolute;left:0;top:0;height:100%;background:var(--accent);text-decoration:none}
+.tenrow .num{text-align:right;font-family:var(--mono)}
 /* ---- prompts and paste ---- */
 details.aihelp{margin:12px 0;background:var(--bg)}
 .aisteps{margin:10px 0 0;padding-left:1.3em;display:flex;flex-direction:column;gap:4px;font-size:.92rem}
@@ -287,6 +295,73 @@ pre.prompt:focus-visible,.pastebox:focus-visible{outline:2px solid var(--accent)
 .fact{display:flex;gap:6px;flex-wrap:wrap}
 .pastebox{grid-column:1/-1;width:100%;font-family:var(--mono);font-size:.78rem;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);resize:vertical}
 .pastebox[hidden]{display:none}
+/* ---- long notes tucked away ---- */
+details.moreinfo{border-top:1px solid var(--line);padding-top:8px}
+details.moreinfo>summary{cursor:pointer;font-size:.86rem;font-weight:600;color:var(--accent);list-style:none}
+details.moreinfo>summary::-webkit-details-marker{display:none}
+details.moreinfo>summary::before{content:"+ ";font-family:var(--mono)}
+details.moreinfo[open]>summary::before{content:"\2212 "}
+details.moreinfo>p{margin-top:6px}
+details.moreinfo>summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* ---- help, legend, filters, grouped settings, phone cards ---- */
+span.cv{display:contents}
+.stats{grid-template-columns:repeat(auto-fit,minmax(168px,1fr))}
+#rows td:last-child{min-width:190px}
+#rows td:last-child .pill{white-space:normal}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.help{color:var(--muted);font-size:.92rem;margin-top:-4px;max-width:72ch}
+details.upload{background:var(--accent-soft);border-color:var(--accent)}
+details.upload>summary{font-size:1rem;color:var(--accent)}
+#dataMsg:empty{display:none}
+.tools{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.fchips{display:flex;flex-wrap:wrap;gap:6px}
+.fchip{font:inherit;font-size:.86rem;font-weight:600;padding:5px 12px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.fchip span{font-family:var(--mono);font-size:.75rem;margin-left:4px;color:var(--muted)}
+.fchip:hover{border-color:var(--accent)}
+.fchip.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.fchip.on span{color:var(--on-accent)}
+.fchip:focus-visible,.sortbtn:focus-visible,.srch input:focus-visible,.sortsel select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.srch{margin-left:auto}
+.srch input,.sortsel select{font:inherit;font-size:.9rem;padding:6px 12px;border:1px solid var(--line);border-radius:99px;background:var(--surface);color:var(--fg);min-width:200px}
+.sortsel{display:none;align-items:center;gap:8px;font-size:.86rem;color:var(--muted)}
+.sortbtn{font:inherit;font-family:var(--mono);font-size:.68rem;letter-spacing:.05em;text-transform:uppercase;color:inherit;background:none;border:0;padding:0;cursor:pointer;white-space:nowrap}
+.sortbtn:hover{color:var(--accent)}
+th[aria-sort=ascending] .sortbtn::after{content:" \25B2";color:var(--accent)}
+th[aria-sort=descending] .sortbtn::after{content:" \25BC";color:var(--accent)}
+.legendbox{background:var(--bg)}
+.legendbox>summary{color:var(--accent)}
+.lgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 28px;margin-top:12px}
+.lg{display:flex;flex-direction:column;gap:6px}
+.lg h4{margin:0;font-family:var(--mono);font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;color:var(--accent)}
+.lg p{font-size:.88rem;color:var(--muted);max-width:none}
+.lg p .pill{margin-right:6px}
+.settingsbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+.cgroup{border:0;border-top:1px solid var(--line);margin:14px 0 0;padding:12px 0 0;min-width:0}
+.cgroup legend{font-weight:650;font-size:.98rem;padding:0 8px 0 0}
+.cgroup>.note{margin-bottom:2px}
+.cgroup .controls{margin-top:10px}
+.ctl.changed label::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--warn);display:inline-block;margin-right:6px;align-self:center;flex:none}
+.ctl.changed label{justify-content:flex-start}
+.ctl.changed label output{margin-left:auto}
+@media(max-width:720px){
+  .lgrid{grid-template-columns:minmax(0,1fr)}
+  .sortsel{display:flex}
+  .srch{margin-left:0;width:100%}.srch input{width:100%}
+  .tablewrap{overflow:visible;border:0;border-radius:0}
+  .tablewrap table{display:block;min-width:0!important;width:100%}
+  .tablewrap td .pill{white-space:normal}
+  .tablewrap td span.cv{display:block;text-align:right}
+  .tablewrap thead{display:none}
+  .tablewrap tbody,.tablewrap tr,.tablewrap td{display:block}
+  .tablewrap tr{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;padding:8px 14px;background:var(--surface);box-shadow:var(--shadow)}
+  .tablewrap tr.sel{background:var(--accent-soft)}
+  .tablewrap td{display:flex;justify-content:space-between;align-items:center;gap:14px;border:0;padding:5px 0;text-align:right}
+  .tablewrap td::before{content:attr(data-label);font-family:var(--mono);font-size:.66rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);text-align:left;flex:none;max-width:42%}
+  .tablewrap td:first-child{font-size:1rem;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:4px}
+  .tablewrap td:first-child::before{content:none}
+  .tablewrap td[data-label=""]::before{content:none}
+  .tablewrap td svg{max-width:150px}
+}
 @media print{.jump,.heroBtns,.tabs{display:none!important}
   .tabpanel{display:flex!important}.js .tabpanel>h3{display:block}
   details.drop .dropbody{display:block}}
@@ -294,7 +369,7 @@ pre.prompt:focus-visible,.pastebox:focus-visible{outline:2px solid var(--accent)
 </head>
 <body>
 <nav class="jump" aria-label="On this page"><div class="jumpin">
-  <a href="#problem">The problem</a><a href="#how">How it works</a><a href="#dashboard">Dashboard</a><a href="#why">Two surveys</a><a href="#early">Early signals</a><a href="#deeper">Going deeper</a><a href="#choices">My choices</a><a href="#rely">Before you rely on it</a><a href="#limits">Limits</a>
+  <a href="#problem">The problem</a><a href="#how">How it works</a><a href="#dashboard">Dashboard</a><a href="#why">Two surveys</a><a href="#signals">Early signals</a><a href="#deeper">Going deeper</a><a href="#choices">My choices</a><a href="#rely">Before you rely on it</a><a href="#limits">Limits</a>
 </div></nav>
 
 
@@ -320,22 +395,20 @@ pre.prompt:focus-visible,.pastebox:focus-visible{outline:2px solid var(--accent)
 
 <section id="how">
   <div class="sechead"><span class="eyebrow">02 · The idea in four steps</span><h2>How it works</h2></div>
-  <p class="sub">Four steps, from a few files to one page a leader can use.</p>
   <div class="flow">
-    <div class="step"><span class="stepn">1</span><span class="eyebrow">In</span><h3>Ten small files</h3><p>Headcount and tenure. The pulse (with eNPS) and the manager survey each quarter, with how many people answered. Comments. Compa-ratios from Total Rewards. Rating distributions. Exits with tenure at exit. Manager and promotion history, open roles and leave from the HRIS. Group data for the equity view, pay per person from Finance, and spans of control.</p></div>
-    <div class="step"><span class="stepn">2</span><span class="eyebrow">Check</span><h3>Twelve signals, one status</h3><p>Pulse falling. Pair movement. Response falling. Pay below market with low eNPS. Low eNPS despite market-level pay. New manager. Stalled promotions. Heavy load. Wide span. Rating gap against the company. Exits bunched at one tenure point. Turnover against a reference. Each team ends on one rung: Stable, Watch, Slipping or Act.</p></div>
+    <div class="step"><span class="stepn">1</span><span class="eyebrow">In</span><h3>Six small files</h3><p>Teams (headcount, pay, ratings and HRIS data), quarterly survey scores and exits, exits by tenure, pulse items, group data for the equity view, and comments.</p></div>
+    <div class="step"><span class="stepn">2</span><span class="eyebrow">Check</span><h3>Twelve signals, one status</h3><p>Pulse and manager moves, falling response, pay and eNPS, new manager, stalled promotions, heavy load, wide span, rating gap, exit clusters and turnover. Each team ends on one rung: Stable, Watch, Slipping or Act.</p></div>
     <div class="step"><span class="stepn">3</span><span class="eyebrow">Guard</span><h3>Privacy first</h3><p>Team level only. Small groups hidden. No individual scores, no individual predictions.</p></div>
     <div class="step"><span class="stepn">4</span><span class="eyebrow">Out</span><h3>One page</h3><p>The top three places to look, a first question for each, and a note on what the data cannot tell you.</p></div>
   </div>
-
 </section>
 
 <section id="dashboard">
   <div class="sechead"><span class="eyebrow">03 · Try it</span><h2>The dashboard</h2></div>
-  <p>Every quarter, each person answers two short surveys: a pulse on how the team is doing, and a few questions on how well their manager supports them. The two are read as a pair. Each team gets one status: Stable, Watch, Slipping or Act. Select a team in the table to see its detail. Open the settings to change what counts as a flag, or to see what the data itself says is normal.</p>
-  <details class="settings upload" open>
-    <summary>Load your own data (it stays in this browser)</summary>
-    <p class="note" style="margin-top:8px">Team-level files only: one row per team, never one row per person. Download a template, fill it in, and choose the files. Only the first two are required. Each other file switches on another view. Delimiters (comma, semicolon, tab) and decimal commas are detected. Nothing is uploaded: the page makes no network requests.</p>
+  <p>Each quarter, people answer two short surveys: a pulse on how the team is doing and a few questions on manager support. They are read as a pair, and each team gets one status: Stable, Watch, Slipping or Act. Click a team to see its detail. Open the settings to change what counts as a flag.</p>
+  <details class="settings upload" id="upBox">
+    <summary><span id="upSum">Load your own data (it stays in this browser)</span></summary>
+    <p class="note" style="margin-top:8px">Team-level files only: one row per team, never per person. Download a template, fill it in and choose the files, or use Paste. Only the first two are required, and each other file switches on another view. Nothing is uploaded.</p>
 <!--PROMPTS-->
     <details class="settings aihelp">
       <summary>Save time: have an AI assistant prepare your files</summary>
@@ -344,7 +417,7 @@ pre.prompt:focus-visible,.pastebox:focus-visible{outline:2px solid var(--accent)
         <li><b>Paste it into your assistant</b>. Give it your export, or only the column names.</li>
         <li><b>Save each answer as a .csv file</b>, or press Paste next to a file and paste the cells in.</li>
       </ol>
-      <p class="msg">Handing data to an assistant sends it to that provider. This page never sends anything, but the assistant does. Use one your company has approved, leave out names, and prefer team totals to person-level rows. The safer prompt shares only column names and asks for formulas you run yourself.</p>
+      <p class="msg">Giving data to an assistant sends it to that provider, even though this page never sends anything. Use one your company has approved, leave out names, and prefer team totals. The safer prompt shares only column names.</p>
       <div class="promptwrap"><div class="prow"><b>Safer: column names only</b><button class="tpl" type="button" data-copy="promptB">Copy prompt</button></div><pre class="prompt" id="promptB" tabindex="0">I am preparing data for People Signals, a free tool that reads team-level CSV files in the browser. I will not share my data itself. I will give you only the column names of my export, and you will write the spreadsheet formulas, or a short Python script, that I can run on my own computer to build the files below. Do not ask me for the data.
 
 RULES
@@ -382,8 +455,9 @@ Header row: team,quarter,pulse_favorable,pulse_response,manager_score,manager_re
 - exits: people who left the team in the quarter. regretted_exits: of those, how many the team wanted to keep (optional, never more than exits).
 
 3. exits_by_tenure.csv (optional). One row per team.
-Header row: team,under_6m,m6_12,m12_18,over_18
-- Exits in the last 12 months, by how long the person had been in the company when they left: under 6 months, 6 to 12, 12 to 18, over 18. Should add up to the four quarters of exits.
+Header row: team,under_6m,m6_12,m12_18,over_18,reg_under_6m,reg_m6_12,reg_m12_18,reg_over_18
+- under_6m, m6_12, m12_18, over_18: exits in the last 12 months, by how long the person had been in the company when they left. Should add up to the four quarters of exits.
+- reg_under_6m, reg_m6_12, reg_m12_18, reg_over_18 (optional, all four or none): of those exits, how many were people the team wanted to keep (regretted), in the same bands. Never more than the exits in that band. Ask me how "regretted" is defined before you count.
 
 4. items.csv (optional). One row per team, latest quarter.
 Header row: team,growth_career,workload_pace,manager_support,tools_process,recognition,pay_fairness,plan_to_stay
@@ -441,8 +515,9 @@ Header row: team,quarter,pulse_favorable,pulse_response,manager_score,manager_re
 - exits: people who left the team in the quarter. regretted_exits: of those, how many the team wanted to keep (optional, never more than exits).
 
 3. exits_by_tenure.csv (optional). One row per team.
-Header row: team,under_6m,m6_12,m12_18,over_18
-- Exits in the last 12 months, by how long the person had been in the company when they left: under 6 months, 6 to 12, 12 to 18, over 18. Should add up to the four quarters of exits.
+Header row: team,under_6m,m6_12,m12_18,over_18,reg_under_6m,reg_m6_12,reg_m12_18,reg_over_18
+- under_6m, m6_12, m12_18, over_18: exits in the last 12 months, by how long the person had been in the company when they left. Should add up to the four quarters of exits.
+- reg_under_6m, reg_m6_12, reg_m12_18, reg_over_18 (optional, all four or none): of those exits, how many were people the team wanted to keep (regretted), in the same bands. Never more than the exits in that band. Ask me how "regretted" is defined before you count.
 
 4. items.csv (optional). One row per team, latest quarter.
 Header row: team,growth_career,workload_pace,manager_support,tools_process,recognition,pay_fairness,plan_to_stay
@@ -465,73 +540,88 @@ Give each file in its own code block, with the file name above it, ready to save
     <!--/PROMPTS-->
     <div class="upload">
       <div class="frow"><div><b>teams.csv</b> <span class="badge req">required</span><small>Headcount per team, plus optional pay, ratings and HRIS columns</small></div><input type="file" accept=".csv,text/csv,text/plain" id="f_teams" aria-label="teams.csv"><button class="tpl" type="button" data-tpl="teams">Template</button></div>
-      <div class="frow"><div><b>quarterly.csv</b> <span class="badge req">required</span><small>Pulse, manager survey, eNPS, pace and exits, for the last 4 quarters</small></div><input type="file" accept=".csv,text/csv,text/plain" id="f_quarterly" aria-label="quarterly.csv"><button class="tpl" type="button" data-tpl="quarterly">Template</button></div>
-      <div class="frow"><div><b>exits_by_tenure.csv</b> <span class="badge">optional</span><small>Exits in the last 12 months by tenure at exit</small></div><input type="file" accept=".csv,text/csv,text/plain" id="f_exits_by_tenure" aria-label="exits_by_tenure.csv"><button class="tpl" type="button" data-tpl="exits_by_tenure">Template</button></div>
+      <div class="frow"><div><b>quarterly.csv</b> <span class="badge req">required</span><small>Pulse, manager survey, eNPS, pace, exits and regretted exits, for the last 4 quarters</small></div><input type="file" accept=".csv,text/csv,text/plain" id="f_quarterly" aria-label="quarterly.csv"><button class="tpl" type="button" data-tpl="quarterly">Template</button></div>
+      <div class="frow"><div><b>exits_by_tenure.csv</b> <span class="badge">optional</span><small>Exits in the last 12 months by tenure at exit, and how many were regretted</small></div><input type="file" accept=".csv,text/csv,text/plain" id="f_exits_by_tenure" aria-label="exits_by_tenure.csv"><button class="tpl" type="button" data-tpl="exits_by_tenure">Template</button></div>
       <div class="frow"><div><b>items.csv</b> <span class="badge">optional</span><small>Six pulse items and a plan-to-stay question</small></div><input type="file" accept=".csv,text/csv,text/plain" id="f_items" aria-label="items.csv"><button class="tpl" type="button" data-tpl="items">Template</button></div>
       <div class="frow"><div><b>groups.csv</b> <span class="badge">optional</span><small>Women and men: pay, promotion, exits, pulse, response</small></div><input type="file" accept=".csv,text/csv,text/plain" id="f_groups" aria-label="groups.csv"><button class="tpl" type="button" data-tpl="groups">Template</button></div>
       <div class="frow"><div><b>comments.csv</b> <span class="badge">optional</span><small>Survey comments by team, for keyword themes</small></div><input type="file" accept=".csv,text/csv,text/plain" id="f_comments" aria-label="comments.csv"><button class="tpl" type="button" data-tpl="comments">Template</button></div>
     </div>
     <div class="btnrow"><button class="go" type="button" id="loadMine">Check and load my files</button><button class="x" type="button" id="useDemo">Use the demo data</button></div>
-    <div id="dataMsg" aria-live="polite"></div>
   </details>
+  <div id="dataMsg" aria-live="polite"></div>
   <div class="dash" id="dash">
     <div class="dashhead"><h3 id="qtr"></h3><span class="note" id="dsnote"></span><button class="x noprint" id="printBtn" type="button">Print or save as PDF</button></div>
     <div class="stats" id="stats"></div>
 
     <details class="settings">
       <summary>Settings: what counts as a flag, and what the data says is normal</summary>
+      <div class="settingsbar"><button class="x" type="button" id="resetSettings">Reset to defaults</button><span class="note" id="changedNote"></span></div>
+      <fieldset class="cgroup"><legend>Privacy</legend><p class="note">Who is hidden, so nobody can be picked out from a cut.</p>
       <div class="controls">
         <div class="ctl"><label for="minGroup">Minimum group size <output id="o_min"></output></label>
           <input type="range" id="minGroup" min="3" max="12" step="1" value="5">
-          <small>Teams smaller than this are hidden, so nobody can be identified from a cut.</small></div>
+          <small>Smaller teams are hidden, so nobody can be picked out.</small></div>
         <div class="ctl"><label for="minMgr">Answers needed to show a manager score <output id="o_mm"></output></label>
           <input type="range" id="minMgr" min="3" max="10" step="1" value="6">
-          <small>Below this many answers, a team's manager score is hidden and leaves every flag. One unhappy person can move it, and can be identified from it.</small></div>
+          <small>Below this many answers a manager score is hidden and leaves every flag, since one unhappy person can move it.</small></div>
+      </div></fieldset>
+      <fieldset class="cgroup"><legend>Scores and response</legend><p class="note">How big a move counts as a signal, and how to treat people who did not answer.</p>
+      <div class="controls">
         <div class="ctl"><label for="drop">Pulse fall to flag <output id="o_drop"></output></label>
           <input type="range" id="drop" min="3" max="20" step="1" value="8">
-          <small>Points lost in pulse favorability, falling two quarters in a row.</small></div>
+          <small>Points lost in pulse favorability over two quarters in a row.</small></div>
         <div class="ctl"><label for="mdrop">Manager score move to flag <output id="o_mdrop"></output></label>
           <input type="range" id="mdrop" min="0.1" max="0.6" step="0.1" value="0.2">
-          <small>Change in the manager effectiveness score (out of 5) from one quarter to the next.</small></div>
+          <small>Change in the manager score (out of 5) from one quarter to the next.</small></div>
         <div class="ctl"><label for="delta">If people did not answer, assume <output id="o_delta"></output></label>
           <input type="range" id="delta" min="0" max="20" step="1" value="5">
-          <small>Points less favorable than the people who did answer, on the pulse. The manager score is adjusted by the same logic on its 5-point scale.</small></div>
+          <small>Points less favorable than people who did answer. The manager score is scaled the same way.</small></div>
         <div class="ctl"><label for="minResp">Low response below <output id="o_resp"></output></label>
           <input type="range" id="minResp" min="40" max="80" step="5" value="60">
-          <small>Share of the team that answered either survey. Below this, scores are read with caution.</small></div>
+          <small>Share of the team that answered either survey. Below this, read scores with caution.</small></div>
+        <div class="ctl"><label for="skew">Rating gap to flag <output id="o_skew"></output></label>
+          <input type="range" id="skew" min="0.15" max="0.9" step="0.05" value="0.35">
+          <small>Difference between a team's average rating and the company average.</small></div>
+      </div></fieldset>
+      <fieldset class="cgroup"><legend>Pay and equity</legend><p class="note">Where pay becomes a signal.</p>
+      <div class="controls">
         <div class="ctl"><label for="payT">Pay below market at compa-ratio <output id="o_pay"></output></label>
           <input type="range" id="payT" min="0.85" max="1" step="0.01" value="0.93">
-          <small>Team average pay divided by the market midpoint for the role. A team at or below this, with eNPS at or below the company, is flagged.</small></div>
+          <small>Team average pay against the market midpoint. At or below this, with low eNPS, is flagged.</small></div>
         <div class="ctl"><label for="payHi">Paid at or above market from <output id="o_hi"></output></label>
           <input type="range" id="payHi" min="1" max="1.15" step="0.01" value="1.05">
-          <small>At or above this, with no more than 10% of the team under 0.90, pay is treated as an unlikely driver of low eNPS. The team is pointed to other factors.</small></div>
+          <small>At or above this, with few people under 0.90, pay is an unlikely driver of low eNPS.</small></div>
+        <div class="ctl"><label for="eqpay">Pay gap between groups to flag <output id="o_eq"></output></label>
+          <input type="range" id="eqpay" min="2" max="10" step="1" value="5">
+          <small>Difference in average compa-ratio. 5% is the EU Pay Transparency Directive line for a joint pay assessment. Check the exact test with legal.</small></div>
+      </div></fieldset>
+      <fieldset class="cgroup"><legend>Exits, workload and structure</legend><p class="note">References for turnover, load and spans. Placeholders until you set your own.</p>
+      <div class="controls">
+        <div class="ctl"><label for="bench">Reference turnover, % a year</label>
+          <input type="number" id="bench" min="1" max="60" step="1" value="15">
+          <small>Illustrative. Use a public figure for your industry and country. A team is flagged 5 points above it.</small></div>
+        <div class="ctl"><label for="rw">Weight of a regretted exit <output id="o_rw"></output></label>
+          <input type="range" id="rw" min="1" max="4" step="0.5" value="2">
+          <small>How many times an exit of someone the team wanted to keep counts in the turnover and exit-cluster flags. 1 treats all exits the same. Needs regretted exits in your files.</small></div>
+        <div class="ctl"><label for="repl">Cost of replacing one person <output id="o_repl"></output></label>
+          <input type="range" id="repl" min="30" max="150" step="10" value="50">
+          <small>An assumption. Estimates vary widely with role and seniority. Use a figure from Finance.</small></div>
         <div class="ctl"><label for="wl">Heavy workload index from <output id="o_wl"></output></label>
           <input type="range" id="wl" min="40" max="80" step="1" value="55">
-          <small>A 0 to 100 index built from open roles, overtime, leave not taken and the pace question in the pulse.</small></div>
+          <small>A 0 to 100 index from open roles, overtime, leave not taken and the pace question.</small></div>
         <div class="ctl"><label for="stale">Stalled promotions from <output id="o_st"></output></label>
           <input type="range" id="stale" min="20" max="60" step="5" value="40">
           <small>Share of top-rated people with no promotion or pay change in 18 months or more.</small></div>
         <div class="ctl"><label for="span">Wide span from <output id="o_sp"></output></label>
           <input type="range" id="span" min="8" max="20" step="1" value="12">
-          <small>Direct reports for one manager. A placeholder: comfortable spans differ by role and by how much of the manager's time is hands-on work.</small></div>
-        <div class="ctl"><label for="eqpay">Pay gap between groups to flag <output id="o_eq"></output></label>
-          <input type="range" id="eqpay" min="2" max="10" step="1" value="5">
-          <small>Difference in average compa-ratio. 5% is the line the EU Pay Transparency Directive uses to require a joint pay assessment. Check the exact test with legal.</small></div>
-        <div class="ctl"><label for="repl">Cost of replacing one person <output id="o_repl"></output></label>
-          <input type="range" id="repl" min="30" max="150" step="10" value="50">
-          <small>An assumption. Published estimates vary widely with role and seniority. Replace it with a figure from Finance.</small></div>
-        <div class="ctl"><label for="skew">Rating gap to flag <output id="o_skew"></output></label>
-          <input type="range" id="skew" min="0.15" max="0.9" step="0.05" value="0.35">
-          <small>Difference between a team's average rating and the company average.</small></div>
-        <div class="ctl"><label for="bench">Reference turnover, % a year</label>
-          <input type="number" id="bench" min="1" max="60" step="1" value="15">
-          <small>Illustrative. Replace with a public figure for your industry and country. A team is flagged 5 points above it.</small></div>
-      </div>
+          <small>Direct reports for one manager. A placeholder: comfortable spans differ by role.</small></div>
+      </div></fieldset>
       <div class="fromdata" id="fromdata"></div>
     </details>
 
     <div class="card">
       <h3>Where to look this quarter <span>Top three teams, ranked by status and then by signals</span></h3>
+      <p class="help">The teams with the strongest signals, each with a first question to ask. Start the conversation here.</p>
       <div class="briefgrid" id="brief"></div>
       <p class="note" id="briefNote"></p>
     </div>
@@ -539,8 +629,13 @@ Give each file in its own code block, with the file name above it, ready to save
     <div class="maingrid">
       <div class="card">
         <h3>Teams <span>Pulse and manager score are shown after the non-response adjustment</span></h3>
-        <div class="tablewrap"><table>
-          <thead><tr><th>Team</th><th class="num">People</th><th>Pulse</th><th class="num">eNPS</th><th>Manager</th><th class="num">Compa</th><th class="num">Answered</th><th>Status</th><th>Pair, this quarter</th><th>Signals</th></tr></thead>
+        <p class="help">One row per team. Read across: the trend, how many answered, and the flags. Click a team name to see its detail below.</p>
+        <details class="settings legendbox" id="legendBox"><summary>What the signals and terms mean</summary><div id="legend"></div></details>
+        <div class="tools"><div class="fchips" role="group" aria-label="Filter teams by status" id="fchips"></div>
+          <label class="srch"><span class="sr">Search teams</span><input type="search" id="teamSearch" placeholder="Search teams" autocomplete="off"></label>
+          <label class="sortsel"><span>Sort by</span><select id="sortSel"></select></label></div>
+        <div class="tablewrap"><table class="cardify">
+          <thead><tr><th aria-sort="none"><button class="sortbtn" type="button" data-k="team">Team</button></th><th class="num" aria-sort="none"><button class="sortbtn" type="button" data-k="hc">People</button></th><th class="num" aria-sort="none"><button class="sortbtn" type="button" data-k="exits" title="Exits in the last 12 months. In brackets: people the team wanted to keep.">Exits, 12m (regretted)</button></th><th aria-sort="none"><button class="sortbtn" type="button" data-k="pulse" title="Share of answers that were favorable on the short pulse survey, after the non-response adjustment.">Pulse</button></th><th class="num" aria-sort="none"><button class="sortbtn" type="button" data-k="enps" title="Employee net promoter score: the share who would recommend working here minus the share who would not. From -100 to 100.">eNPS</button></th><th aria-sort="none"><button class="sortbtn" type="button" data-k="mgr" title="Average score on the short manager survey, out of 5.">Manager</button></th><th class="num" aria-sort="none"><button class="sortbtn" type="button" data-k="compa" title="Compa-ratio: average pay divided by the market midpoint for the role. 1.00 is at market.">Compa</button></th><th class="num" aria-sort="none"><button class="sortbtn" type="button" data-k="resp" title="Share of the team that answered the pulse / the manager survey.">Answered</button></th><th aria-sort="none"><button class="sortbtn" type="button" data-k="status" title="Stable, Watch, Slipping or Act.">Status</button></th><th>Pair, this quarter</th><th aria-sort="none"><button class="sortbtn" type="button" data-k="signals" title="Flags that fired for this team. See the legend above the table.">Signals</button></th></tr></thead>
           <tbody id="rows"></tbody>
         </table></div>
         <p class="note" id="hiddenNote"></p>
@@ -581,31 +676,30 @@ Give each file in its own code block, with the file name above it, ready to save
 <section id="why">
   <div class="sechead"><span class="eyebrow">04 · The method</span><h2>Why two short surveys, asked together</h2></div>
   <div class="cols">
-    <div><h3>They answer different questions</h3><p>The pulse says how people feel. The manager survey says how well they are supported. A fall in one, the other, or both points to different conversations.</p></div>
-    <div><h3>Same moment, same people</h3><p>Asking both every quarter puts the numbers on one timeline. There is no six-month gap to explain away, and no manager score that is older than the pulse beside it.</p></div>
-    <div><h3>Short enough to answer</h3><p>A handful of questions each. If the surveys are long, response falls, and everything below gets weaker.</p></div>
+    <div><h3>They answer different questions</h3><p>The pulse says how people feel. The manager survey says how well they are supported. Which one falls, or both, points to a different conversation.</p></div>
+    <div><h3>Same moment, same people</h3><p>Asking both every quarter puts them on one timeline, with no six-month gap to explain away.</p></div>
+    <div><h3>Short enough to answer</h3><p>A handful of questions each. Long surveys cut response, and everything else gets weaker.</p></div>
   </div>
-  <p>The pair is read three ways. <strong>Where a team sits</strong> against the company on both scores. <strong>How it moved</strong> since last quarter: both down, manager down first, pulse down alone, or steady. And <strong>whether the manager score tends to move first</strong> across all teams, which decides how much weight an early manager signal deserves.</p>
+  <p>The pair is read three ways: where a team sits against the company, how it moved since last quarter, and whether the manager score tends to move first across all teams, which decides how much weight an early manager signal deserves.</p>
 
 </section>
 
-<section id="early">
+<section id="signals">
   <div class="sechead"><span class="eyebrow">05 · Before the scores move</span><h2>Early signals</h2></div>
-  <p>The pulse, response and exits tell you what has already happened. Three things often come earlier, and all three sit in systems a company already runs. Each is measured for the team, never for a person.</p>
+  <p>The pulse, response and exits show what has already happened. Three things often come earlier, and they sit in systems a company already runs. Each is measured for the team, never a person.</p>
   <div class="cols">
-    <div><h3>Manager changes</h3><p>Share of the team whose manager changed in six months, and how long the current manager has been in role. A new manager can help or hurt, so it is read next to the manager score.</p></div>
-    <div><h3>Stalled promotions</h3><p>Share of top-rated people with no promotion or pay change in 18 months or more. It joins the rating data you already have to career movement.</p></div>
-    <div><h3>Heavy quarters</h3><p>An index from open roles, overtime where tracked, leave not taken and one pulse question on whether people can sustain their pace. Exits are not in it, since they have their own flag.</p></div>
+    <div><h3>Manager changes</h3><p>Share of the team whose manager changed in six months, and how long the current manager has been in role. Read next to the manager score, since a new manager can help or hurt.</p></div>
+    <div><h3>Stalled promotions</h3><p>Share of top-rated people with no promotion or pay change in 18 months or more.</p></div>
+    <div><h3>Heavy quarters</h3><p>An index from open roles, overtime where tracked, leave not taken and the pace question in the pulse. Exits are left out, since they have their own flag.</p></div>
   </div>
-  <p>These three are kept apart on purpose. Manager change, career movement and load are different groups, and each is counted once. Exits are not counted inside the load index, because turnover has its own flag. That keeps one event, such as a reorg, from being counted as three warnings.</p>
-  <p>The signals do not raise a separate alarm. Every team gets one status, and the early signals decide it only when nothing else has fired.</p>
+  <p>Each group is counted once, so one event such as a reorg is not counted as three warnings. The signals never raise a separate alarm: every team gets one status, and early signals decide it only when nothing else has fired.</p>
   <div class="ladder">
-    <div><span class="eyebrow">Rung 1</span><h3>Stable</h3><p>Nothing has fired, or only one early signal. It is shown as a chip, not a status.</p></div>
-    <div><span class="eyebrow">Rung 2</span><h3>Watch</h3><p>Two or more early signals, and the pulse, the manager score and response have not moved. The earliest moment to talk to the manager.</p></div>
-    <div><span class="eyebrow">Rung 3</span><h3>Slipping</h3><p>One score has moved, or response is falling, or pay or turnover is flagged. Something has started to change.</p></div>
-    <div><span class="eyebrow">Rung 4</span><h3>Act</h3><p>Pulse and manager score are both down, the pulse has fallen two quarters in a row, or exits bunch at one tenure point.</p></div>
+    <div><span class="eyebrow">Rung 1</span><h3>Stable</h3><p>Nothing has fired, or only one early signal.</p></div>
+    <div><span class="eyebrow">Rung 2</span><h3>Watch</h3><p>Two or more early signals and no score has moved. The earliest moment to talk to the manager.</p></div>
+    <div><span class="eyebrow">Rung 3</span><h3>Slipping</h3><p>One score has moved, response is falling, or pay or turnover is flagged.</p></div>
+    <div><span class="eyebrow">Rung 4</span><h3>Act</h3><p>Pulse and manager score both down, pulse down two quarters in a row, or exits bunched at one tenure point.</p></div>
   </div>
-  <p>Watch is a bet, and the page treats it as one. With real data it would be tested against past exits before anyone relied on it. The backtest card shows how.</p>
+  <p>Watch is a bet, and the page treats it as one. The backtest card shows how it would be tested.</p>
 
 </section>
 
@@ -619,31 +713,31 @@ Give each file in its own code block, with the file name above it, ready to save
   </div>
     <div class="tabpanel" role="tabpanel" id="panel-silent" aria-labelledby="tab-silent">
       <h3>Counting the people who did not answer</h3>
-      <p>A score only describes the people who answered. If half the team is silent, the score says little about them. The dashboard handles this in four ways.</p>
+      <p>A score only describes the people who answered. If half the team is silent, it says little about them. The dashboard handles this in four ways.</p>
       <div class="cols">
     <div><h3>Response sits next to every score</h3><p>A favorability figure never appears without the share of the team behind it, for both surveys.</p></div>
     <div><h3>A range, not a point</h3><p>If every silent person felt negative, the true score could be much lower. If every one felt positive, much higher. The width of that range is the honest uncertainty.</p></div>
-    <div><h3>An assumption you can change</h3><p>The slider re-weights each score as if non-responders were a set number of points less favorable. If a flag only appears at a high assumption, treat it as weaker.</p></div>
-    <div><h3>Silence is a signal</h3><p>A response rate that falls quarter after quarter, on either survey, gets its own flag. People often stop answering before they leave.</p></div>
+    <div><h3>An assumption you can change</h3><p>The slider re-weights each score as if non-responders were a set number of points less favorable. A flag that only appears at a high assumption is weaker.</p></div>
+    <div><h3>Silence is a signal</h3><p>A response rate that falls quarter after quarter gets its own flag. People often stop answering before they leave.</p></div>
   </div>
     </div>
     <div class="tabpanel" role="tabpanel" id="panel-pay" aria-labelledby="tab-pay" hidden>
       <h3>Adding pay</h3>
-      <p>If Total Rewards can share team-level pay data, the useful number is the compa-ratio: average pay divided by the market midpoint for the role. A team at 0.90 is paid about 10% under market on average. Read next to eNPS and the pulse, it answers a question leaders often guess at: is pay the reason this team feels the way it does?</p>
+      <p>If Total Rewards can share team-level pay, the useful number is the compa-ratio: average pay divided by the market midpoint for the role. A team at 0.90 is paid about 10% under market. Read next to eNPS, it answers a question leaders often guess at: is pay why this team feels the way it does?</p>
       <div class="cols">
     <div><h3>Aggregates only</h3><p>Average compa-ratio and the share of the team under 0.90. Never an individual's pay, and hidden for small groups.</p></div>
-    <div><h3>Exceptions beat averages</h3><p>The dashboard shows teams far from the pattern. Low eNPS with fair pay points away from pay. Fair eNPS with low pay points to what is holding people.</p></div>
+    <div><h3>Exceptions beat averages</h3><p>The dashboard shows teams far from the pattern: low eNPS with fair pay points away from pay, and fair eNPS with low pay points to what is holding people.</p></div>
     <div><h3>A question for Total Rewards</h3><p>A pay flag opens a conversation with the team that owns pay, who know the level, location and tenure mix behind the number.</p></div>
-    <div><h3>Pay can rule itself out</h3><p>When a team is paid at or above market (from 1.05, with few people under 0.90) and its eNPS is still low or falling, the dashboard stops pointing at pay. It points to the manager score, response, exit timing and what people write.</p></div>
+    <div><h3>Pay can rule itself out</h3><p>When a team is paid at or above market (from 1.05, few under 0.90) and eNPS is still low or falling, the dashboard points to the manager score, response, exit timing and what people write.</p></div>
   </div>
     </div>
     <div class="tabpanel" role="tabpanel" id="panel-beyond" aria-labelledby="tab-beyond" hidden>
       <h3>Beyond the pulse</h3>
-      <p>Tools built for this work usually cover four more things. I added each at a level I could do honestly: team-level, with the limits stated.</p>
+      <p>Tools built for this work usually cover four more things. I added each at a level I could do honestly: team level, with the limits stated.</p>
       <div class="cols">
-    <div><h3>An equity lens</h3><p>Pay, promotion, exit, pulse and response gaps between groups, with small groups hidden. It is a separate view for the people who own pay and fairness, and it never changes a team's status. A gap is a prompt for a proper analysis.</p></div>
-    <div><h3>What goes with staying</h3><p>Six pulse items against a question about plans to stay, with the range on each. It points to where a conversation could start. It does not say what causes people to stay.</p></div>
-    <div><h3>What exits cost</h3><p>An estimated cost of exits, with the people the team wanted to keep shown apart. Leaders act on money, and the cost rests on an assumption the page states and lets you change.</p></div>
+    <div><h3>An equity lens</h3><p>Pay, promotion, exit, pulse and response gaps between groups, small groups hidden. It is for the people who own pay and fairness, and never changes a team's status. A gap is a prompt for a proper analysis.</p></div>
+    <div><h3>What goes with staying</h3><p>Six pulse items against a question about plans to stay, with a range on each. It shows where a conversation could start, not what causes people to stay.</p></div>
+    <div><h3>What exits cost</h3><p>An estimated cost of exits, with the people the team wanted to keep shown apart. The cost rests on an assumption the page states and lets you change.</p></div>
     <div><h3>Manager spans</h3><p>Widest and average direct reports per team. A manager with sixteen reports is a different problem from a team with a weak manager score, and the survey cannot tell them apart.</p></div>
   </div>
     </div>
@@ -652,34 +746,34 @@ Give each file in its own code block, with the file name above it, ready to save
 <section id="choices">
   <div class="sechead"><span class="eyebrow">07 · What I decided and why</span><h2>Choices I made on purpose</h2></div>
   <div class="twocol">
-    <div class="choice"><h3>Teams, not people.</h3><p>A tool that says which person will leave is unfair, risky under GDPR, and changes how people behave once they know about it. A team signal starts a conversation. A personal score ends one.</p></div>
+    <div class="choice"><h3>Teams, not people.</h3><p>A tool that says which person will leave is unfair, risky under GDPR, and changes how people behave. A team signal starts a conversation. A personal score ends one.</p></div>
     <div class="choice"><h3>Few flags, ranked.</h3><p>A leader should leave the page with three questions, not a to-do list of fifteen.</p></div>
-    <div class="choice"><h3>Manager scores are for support.</h3><p>The manager survey points to where a manager may need help. I would not use it as a verdict on a person, and I would not show it below a minimum number of reports.</p></div>
+    <div class="choice"><h3>Manager scores are for support.</h3><p>The manager survey shows where a manager may need help. I would not use it as a verdict, or show it below a minimum number of reports.</p></div>
     <div class="choice"><h3>Every flag comes with a question.</h3><p>A number alone invites guessing. The brief says what to ask, and who to ask.</p></div>
     <div class="choice"><h3>The tool says what it cannot see.</h3><p>A high rating gap can mean a lenient manager or a strong team. The brief says so.</p></div>
-    <div class="choice"><h3>Say "too few to call".</h3><p>A small team's number is shown with its range, and a flag that rests on a few people is labelled as such. A manager score with too few answers is hidden, not shown with a warning.</p></div>
-    <div class="choice"><h3>Log what was done.</h3><p>A flag without an owner and a date is only a worry. The follow-through card shows which flags have an action and which do not.</p></div>
+    <div class="choice"><h3>Say "too few to call".</h3><p>A small team's number is shown with its range. A manager score with too few answers is hidden, not shown with a warning.</p></div>
+    <div class="choice"><h3>Log what was done.</h3><p>A flag without an owner and a date is only a worry. The follow-through card shows which flags have an action.</p></div>
+    <div class="choice"><h3>Exits are not all equal.</h3><p>Losing someone the team wanted to keep counts more, twice by default, and you can change it. Agree what "regretted" means first, or it becomes a judgment about the person who left.</p></div>
     <div class="choice"><h3>Humans decide.</h3><p>Nothing here recommends a decision about a person. It points to where a conversation is worth having.</p></div>
   </div>
 </section>
 
 <section id="rely">
   <div class="sechead"><span class="eyebrow">08 · Next steps</span><h2>Before you rely on it</h2></div>
-  <p class="sub">What I would do first, in this order, before treating the page as more than a way to look at the data.</p>
+  <p class="sub">What I would do first, before treating the page as more than a way to look at the data.</p>
   <ol class="checks">
-    <li>Test each signal against past exits before trusting it, and drop the ones that do not hold up.</li>
+    <li>Test each signal against past exits: compare the following six months for teams with and without it, include the uncertainty on small teams, hold some quarters aside, and drop what does not hold up.</li>
     <li>Check the lead-lag result on real quarters before giving an early manager signal any weight.</li>
-    <li>Test each early signal against past exits: for every past quarter, compare exits in the following six months for teams with and without the signal, include the uncertainty on small teams, and hold some quarters aside so the thresholds are not judged on the data that set them.</li>
-    <li>Keep only the early signals that add something on their own once the others are accounted for.</li>
-    <li>Agree with Total Rewards how compa-ratio is calculated, and compare it only inside the same level and location band.</li>
-    <li>Keep manager changes, promotion timing and open roles as a snapshot every quarter, so they can be tested over time and not only as today's value. Compare who answers with who does not.</li>
-    <li>Set thresholds from your own history first (usual movement, top quarter), then from the backtest, and keep absolute floors beside them.</li>
-    <li>Run the equity view with the people who own pay, with legal agreement first, and compare people at the same level and role before drawing any conclusion.</li>
-    <li>Use person-level survey answers, kept confidential, to find which items go with staying, and take the cost of an exit from Finance, not from a flat share of pay.</li>
-    <li>Take spans from the HRIS reporting lines, and read them with the manager score and the load index.</li>
-    <li>Split exits into regretted and other, and mark reorgs and layoffs on the timeline so they are not read as team health.</li>
-    <li>Move the follow-through log into shared storage with access rules and a record of changes, so a flag without an action is visible to the person who owns the area.</li>
-    <li>Agree the purpose, access and retention with legal and employee representatives before the first run.</li>
+    <li>Keep only the early signals that add something once the others are accounted for.</li>
+    <li>Agree with Total Rewards how compa-ratio is calculated, and compare only within the same level and location band.</li>
+    <li>Keep manager changes, promotion timing and open roles as a snapshot every quarter, so they can be tested over time. Compare who answers with who does not.</li>
+    <li>Set thresholds from your own history first, then from the backtest, and keep absolute floors beside them.</li>
+    <li>Run the equity view with the people who own pay, with legal agreement first, comparing people at the same level and role.</li>
+    <li>Use confidential person-level answers to find which items go with staying, and take the cost of an exit from Finance.</li>
+    <li>Take spans from HRIS reporting lines and read them with the manager score and the load index.</li>
+    <li>Agree what counts as a regretted exit, and mark reorgs and layoffs on the timeline so they are not read as team health.</li>
+    <li>Move the follow-through log into shared storage with access rules and a record of changes.</li>
+    <li>Agree purpose, access and retention with legal and employee representatives before the first run.</li>
     <li>Start with one leader and one quarter, then ask whether the page changed what they did.</li>
   </ol>
 </section>
@@ -688,42 +782,23 @@ Give each file in its own code block, with the file name above it, ready to save
   <details class="drop">
     <summary>
       <span class="sum"><span class="eyebrow">09 · Read this before you trust anything here</span><h2>Limits and blind spots</h2>
-      <span class="sumtxt">30 ways this idea can mislead, and what I would do about each. The big three: it is untested on real data, small teams are noisy, and even team data can identify people.</span></span>
+      <span class="sumtxt">The ten that matter most. The big three: it is untested on real data, small teams are noisy, and even team data can identify people.</span></span>
       <span class="sumhint" aria-hidden="true"></span>
     </summary>
     <div class="dropbody">
       <div class="limits">
-        <div class="limit"><h3>Untested on real data <span class="tag">Evidence</span></h3><p>The signals and thresholds are reasoned, not validated. On the demo data they work because the data was built to show them. Whether they predict anything real is untested, and the thresholds are guesses until they are checked against a real history of exits. Until then, use the page as a structured way to look at team data, not as a prediction.</p></div>
-        <div class="limit"><h3>Thresholds from the data are relative <span class="tag">Statistics</span></h3><p>Setting a line from what is normal across teams (usual movement, top quarter) is better than a guess, but it flags the top quarter even when everyone is fine, and it treats a bad year as normal if every team had one. It needs absolute floors set from past exits beside it. The defaults on this page are my judgment, not a published standard.</p></div>
-        <div class="limit"><h3>The backtest is a first look, not a result <span class="tag">Evidence</span></h3><p>This version reads four quarters, so there are two test windows, and only the signals with a history can be tested. On the demo data the exits are invented. A real backtest needs many more quarters, a range around every rate, and quarters held aside. Without those it can only mislead.</p></div>
-        <div class="limit"><h3>Small numbers are noisy <span class="tag">Statistics</span></h3><p>On a team of eight, one exit is 12.5% turnover. Hiding small teams protects privacy but also hides places where trouble can sit. The page shows a plausible range around exit counts, calls turnover high only when the whole range is above the reference, and tags a pulse move that is smaller than the survey's margin of error. It cannot make a small team's numbers solid.</p></div>
-        <div class="limit"><h3>Some leading signals are still missing <span class="tag">Coverage</span></h3><p>Manager changes, promotions and load are in. Still out: internal moves, reorgs and layoffs, how recently pay was reviewed, who is regretted attrition, and whether earlier flags were acted on. Without them this is an early warning, not an early prediction.</p></div>
-        <div class="limit"><h3>Non-response is handled, not solved <span class="tag">Bias</span></h3><p>Showing response rates, ranges and an adjustment slider makes the gap visible. It cannot tell me who stayed silent or why. The adjustment is an assumption. A real version would also compare who answered with who did not, by tenure, location and level.</p></div>
-        <div class="limit"><h3>Two surveys, same people <span class="tag">Method</span></h3><p>The same person answers both, so their mood on the day can colour both answers. That inflates the link between manager score and pulse. Answering the manager questions first can also shape the pulse. I would vary the order and treat the link as softer than it looks.</p></div>
-        <div class="limit"><h3>Survey fatigue <span class="tag">Behaviour</span></h3><p>Two surveys every quarter is more asked of people. If response drops, the whole picture weakens. The surveys need to stay short, and people need to see something change because of their answers.</p></div>
-        <div class="limit"><h3>Manager scores on few reports <span class="tag">Privacy and fairness</span></h3><p>A manager with four reports can be identified from the score, and one unhappy person moves it a lot. The page hides a team's manager score below a minimum number of answers, which you can set, and drops it from every flag. Scores should be used to offer support, not to judge.</p></div>
-        <div class="limit"><h3>Across-team links rest on few teams <span class="tag">Statistics</span></h3><p>With a small number of teams and only a few quarters, one team can swing a correlation. Each correlation now carries a 95% range, and it says so when the range includes zero. The range treats team-quarters as independent, which they are not, so it is too narrow. The numbers show a pattern worth a question. They do not show that managers cause the other results. The cause can run the other way too: a struggling team can pull its manager's score down.</p></div>
-        <div class="limit"><h3>Compa-ratio is not the same as fair pay <span class="tag">Pay data</span></h3><p>A low ratio can come from a recent promotion round, a newer market, or poor market data for a niche role. A high one can hide a gap inside the team. Above 1.05 means paid above the market midpoint on average. It does not mean paid fairly, so I use it to decide where to look first, not to rule pay out. Level, location and tenure all move it. It is a starting question for Total Rewards, and it does not replace a pay equity review.</p></div>
-        <div class="limit"><h3>People feel pay, not ratios <span class="tag">Perception</span></h3><p>Most people do not know their compa-ratio. What drives eNPS is what they believe about fairness and what they hear from peers and recruiters. The link between actual pay and engagement is often weaker than leaders expect, and this tool will show that if it is true.</p></div>
-        <div class="limit"><h3>Pay data is sensitive and slow <span class="tag">Governance</span></h3><p>It needs Total Rewards' agreement, strict access and, in the EU, care around pay transparency rules. It also changes at review cycles, not quarterly, so it is a snapshot beside quarterly scores.</p></div>
-        <div class="limit"><h3>Early signals are proxies <span class="tag">Measurement</span></h3><p>Overtime, open roles and leave not taken stand in for workload. They miss unrecorded effort and can reflect a team's habits, not its load. Overtime is only tracked for some teams here, and the index averages whatever exists. The pace question in the pulse is the check on the proxies.</p></div>
-        <div class="limit"><h3>Early signals still overlap <span class="tag">Statistics</span></h3><p>A manager change often arrives with a reorg, which arrives with a heavy quarter. I count each group once, keep exits out of the load index and never let signals raise a separate alarm. That reduces double counting but does not remove it. A real test has to show that each signal adds something on its own.</p></div>
-        <div class="limit"><h3>A gap between groups is not proof <span class="tag">Equity</span></h3><p>Level, role, tenure and location can create a gap with no unfair treatment, and a pooled figure can hide a gap inside a team or invent one from the mix of teams. Small groups give noisy rates. The view uses one attribute and two groups, and leaves out everyone else, which a real tool must not do carelessly. It is a prompt for a proper analysis by the people who own pay.</p></div>
-        <div class="limit"><h3>Equity data is sensitive <span class="tag">Privacy and law</span></h3><p>These cuts identify people fastest. They need a stated purpose, a data protection assessment, tight access, and in some countries works council involvement. Showing them to line leaders would invite blame. They stay with the people responsible for fairness.</p></div>
-        <div class="limit"><h3>Items that move together <span class="tag">Statistics</span></h3><p>A strong team scores well on every pulse item, so across teams they all link with plans to stay. The ranking among them is weak evidence, and it cannot show cause. Person-level data and a method that separates overlapping items are needed, with the answers kept confidential.</p></div>
-        <div class="limit"><h3>Cost is an assumption <span class="tag">Measurement</span></h3><p>A flat share of a year's pay per exit ignores role, seniority, lost knowledge and how long the role stays empty. It shows scale, not a forecast. "To keep" needs a definition agreed in advance, or it becomes a judgment about the person who left.</p></div>
-        <div class="limit"><h3>Span is not quality <span class="tag">Interpretation</span></h3><p>A wide span can work for experienced people doing similar work, and a narrow one often means a manager doing the work too. Spans are shown as widest and average only, so no single manager's team can be picked out.</p></div>
-        <div class="limit"><h3>Activity data crosses a line <span class="tag">Privacy</span></h3><p>After-hours messages or calendar load would measure workload more directly. They also turn a team tool into surveillance, and need legal and employee-representative agreement. I left them out on purpose.</p></div>
-        <div class="limit"><h3>A warning can become a label <span class="tag">Behaviour</span></h3><p>A team marked "early warning" can be treated as a problem before anything is wrong, and a manager can be judged by it. The flag is a prompt to ask, and the brief says so.</p></div>
-        <div class="limit"><h3>Public benchmarks are coarse <span class="tag">Context</span></h3><p>Industry-level turnover ignores company stage, role mix, country and seniority. A robotics team in Sofia and a sales team in London have different normal rates. The benchmark is a reference point, not a verdict.</p></div>
-        <div class="limit"><h3>A rating gap can be fair <span class="tag">Interpretation</span></h3><p>A team may rate higher because it performs higher. The flag asks for a look in calibration. It does not say the manager is wrong.</p></div>
-        <div class="limit"><h3>People adjust once measured <span class="tag">Behaviour</span></h3><p>If managers learn that a rating gap or a manager score draws attention, answers and ratings drift toward the middle. If a pulse score becomes a target, people start managing the score. Sharing the brief widely, or tying it to reviews, would make this worse.</p></div>
-        <div class="limit"><h3>Even team data can identify people <span class="tag">Privacy and law</span></h3><p>Filter by team, then tenure, then location, and a group of two appears. In the EU this needs a stated purpose, limited access, retention rules and, in some countries, a works council. Employees should know what is measured and why. Counts under 3 in the tenure split show as &lt;3. A real build also has to block combinations of cuts, which this page does not offer.</p></div>
-        <div class="limit"><h3>Text analysis can mislead <span class="tag">AI</span></h3><p>A model can invent themes, miss sarcasm, or handle other languages poorly. It would read comments for a person to check. It would never be the last step.</p></div>
-        <div class="limit"><h3>It does not show whether the action worked <span class="tag">Scope</span></h3><p>The follow-through card logs an owner, an action and a date for each flag and shows the team's status when the action was raised next to its status now. In the demo it lives in your browser only, and with your own data it is kept in memory until you reload. A real version needs shared storage, access rules and a record of changes. It still cannot say the action caused the change.</p></div>
-        <div class="limit"><h3>Real systems are harder <span class="tag">Engineering</span></h3><p>This page does not connect to an HRIS or a survey tool, handle access rights, or deal with messy exports. That work is real and I have not shown it here.</p></div>
-        <div class="limit"><h3>Tools like this already exist <span class="tag">Position</span></h3><p>Survey and people-analytics platforms already offer much of this. The value of a project like mine is the judgment in what to show, what to hide and what to leave to people, not the features.</p></div>
+        <div class="limit"><h3>Untested on real data <span class="tag">Evidence</span></h3><p>The signals and thresholds are reasoned, not validated. On the demo data they work because it was built to show them. Whether they predict anything real is untested. Use the page to look at team data in a structured way, not as a prediction.</p></div>
+        <div class="limit"><h3>Small numbers are noisy <span class="tag">Statistics</span></h3><p>On a team of eight, one exit is 12.5% turnover. Hiding small teams protects privacy but hides places where trouble can sit. The page shows ranges, calls turnover high only when the whole range is above the reference, and tags a pulse move smaller than the margin of error.</p></div>
+        <div class="limit"><h3>Even team data can identify people <span class="tag">Privacy and law</span></h3><p>Filter by team, then tenure, then location, and a group of two appears. In the EU this needs a stated purpose, limited access, retention rules and sometimes a works council. Employees should know what is measured and why. Counts under 3 show as &lt;3. A real build must also block combinations of cuts.</p></div>
+        <div class="limit"><h3>Manager scores on few reports <span class="tag">Privacy and fairness</span></h3><p>A manager with four reports can be identified from the score, and one unhappy person moves it a lot. The page hides a manager score below a minimum number of answers and drops it from every flag. Use scores to offer support, not to judge.</p></div>
+        <div class="limit"><h3>Equity data is sensitive <span class="tag">Privacy and law</span></h3><p>These cuts identify people fastest. They need a stated purpose, a data protection assessment, tight access and, in some countries, works council involvement. They stay with the people responsible for fairness, not line leaders.</p></div>
+        <div class="limit"><h3>Non-response is handled, not solved <span class="tag">Bias</span></h3><p>Response rates, ranges and the slider make the gap visible. They cannot tell me who stayed silent or why. A real version would compare who answered with who did not, by tenure, location and level.</p></div>
+        <div class="limit"><h3>Compa-ratio is not the same as fair pay <span class="tag">Pay data</span></h3><p>A low ratio can come from a recent promotion round or poor market data for a niche role. A high one can hide a gap inside the team. Level, location and tenure all move it. Use it to decide where to look first, as a question for Total Rewards, not as a pay equity review.</p></div>
+        <div class="limit"><h3>A warning can become a label <span class="tag">Behaviour</span></h3><p>A team marked early warning can be treated as a problem before anything is wrong, and a manager can be judged by it. The flag is a prompt to ask.</p></div>
+        <div class="limit"><h3>"Regretted" is a judgment <span class="tag">Definition</span></h3><p>It depends on who decides, and when, and can reflect bias in who managers want to keep. Counts inside one tenure band are very small, so they show as &lt;3 below three. The weight of 2 is my judgment. Agree the definition before the first count.</p></div>
+        <div class="limit"><h3>It does not show whether the action worked <span class="tag">Scope</span></h3><p>The follow-through card logs an owner, action and date for each flag and compares the team's status then and now. In the demo it lives in your browser. A real version needs shared storage and a record of changes. It still cannot say the action caused the change.</p></div>
       </div>
+      <p class="note">Another 21 are listed in <code>docs/LIMITS.md</code> in the repository.</p>
     </div>
   </details>
 </section>
@@ -763,8 +838,9 @@ Give each file in its own code block, with the file name above it, ready to save
   });
   var lim=document.querySelector('details.drop');
   var was=false;
-  window.addEventListener('beforeprint',function(){if(lim){was=lim.open;lim.open=true}});
-  window.addEventListener('afterprint',function(){if(lim)lim.open=was});
+  var more=[].slice.call(document.querySelectorAll('details.moreinfo'));
+  window.addEventListener('beforeprint',function(){if(lim){was=lim.open;lim.open=true}document.querySelectorAll('details.moreinfo').forEach(function(d){d.open=true})});
+  window.addEventListener('afterprint',function(){if(lim)lim.open=was;document.querySelectorAll('details.moreinfo').forEach(function(d){d.open=false})});
   /* a link to #limits opens the dropdown */
   function openHash(){if(lim&&location.hash==='#limits')lim.open=true}
   window.addEventListener('hashchange',openHash);openHash();
