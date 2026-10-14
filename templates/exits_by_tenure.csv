@@ -1,2 +1,2 @@
-team,under_6m,m6_12,m12_18,over_18
-Example team,0,1,1,0
+team,under_6m,m6_12,m12_18,over_18,reg_under_6m,reg_m6_12,reg_m12_18,reg_over_18
+Example team,0,1,1,0,0,1,0,0
