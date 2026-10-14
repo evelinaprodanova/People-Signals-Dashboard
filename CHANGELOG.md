@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.8
+
+- New Feedback section at the end of the page, with a button that opens a short feedback form on GitHub (an issue form). The page itself still makes no network requests.
+- The no-network test now allows only links to this repository, not any GitHub link.
+
 ## 0.1.7
 
 - New One team tab on the dashboard: pick a team from a dropdown and see it against the company and against its own earlier quarters. It leaves out the equity view and every other team, and it prints on its own.

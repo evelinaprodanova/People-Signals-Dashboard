@@ -67,6 +67,10 @@ scripts/          build-demo.js
 
 Run the checks with `node tests/run.js`. If you change `demo-data/` or `templates/`, run `node scripts/build-demo.js` to refresh `src/demo.js`.
 
+## Feedback
+
+Suggestions and comments are welcome. Use the [feedback form](https://github.com/evelinaprodanova/People-Signals-Dashboard/issues/new?template=feedback.yml) (a free GitHub account is needed). It is public, so please leave out any real employee data.
+
 ## Contributing
 
 The most useful contribution is a test on real data, with the owner's permission, and a note on which signals held up and which did not. See [CONTRIBUTING.md](CONTRIBUTING.md).
