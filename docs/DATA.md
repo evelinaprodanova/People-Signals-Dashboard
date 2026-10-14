@@ -41,11 +41,13 @@ One row per team per quarter. The last four quarters, in the order they first ap
 | `enps` | Employee net promoter score. | -100 to 100 |
 | `pace_favorable` | Share (%) agreeing "I can sustain my current pace". | 0 to 100 |
 | `exits` | People who left the team in the quarter, whole number. | 0 or more |
-| `regretted_exits` | Optional. Of those, how many the team wanted to keep. | not above `exits` |
+| `regretted_exits` | Optional. Of those, how many the team wanted to keep (regretted). | not above `exits` |
 
 ## exits_by_tenure.csv (optional)
 
 `team`, `under_6m`, `m6_12`, `m12_18`, `over_18`: exits in the last 12 months by tenure at exit. Should add up to the sum of the four quarters of `exits`. Switches on the exit-cluster flag and the tenure chart.
+
+Optional: `reg_under_6m`, `reg_m6_12`, `reg_m12_18`, `reg_over_18`, the regretted exits in the same four bands. Add all four or none. Each must not exceed the exits in its band. They should add up to the team's regretted exits in quarterly.csv. If quarterly.csv has no `regretted_exits`, these four columns are used for the team total. They switch on the regretted split in the tenure bands and give regretted exits extra weight in the exit-cluster flag.
 
 ## items.csv (optional)
 
@@ -53,11 +55,11 @@ One row per team per quarter. The last four quarters, in the order they first ap
 
 ## groups.csv (optional)
 
-Switches on the equity view. One attribute, two groups (women and men), and a count of people who are in neither group shown.
+Switches on the equity view. One attribute with three groups: women, men, and people who are another gender or have not said. The team table compares women with men. The third group is pooled across all visible teams, so a small group is never shown team by team.
 
-`team`, `women`, `other` (optional, default 0), `promoted_women`, `promoted_men`, `exits_women`, `exits_men` (counts over the last 12 months), `compa_women`, `compa_men`, `pulse_women`, `pulse_men`, `response_women`, `response_men`.
+`team`, `women`, `other` (optional, default 0), `promoted_women`, `promoted_men`, `exits_women`, `exits_men` (counts over the last 12 months), `compa_women`, `compa_men`, `pulse_women`, `pulse_men`, `response_women`, `response_men`. For the third group, add `promoted_other`, `exits_other`, `compa_other`, `pulse_other`, `response_other` (all optional, leave them empty when `other` is 0).
 
-Men are worked out as headcount minus women minus other. The page shows nothing for a team where either group is smaller than the minimum group size.
+Men are worked out as headcount minus women minus other. Never guess anyone's gender: leave people as not stated. The page shows nothing for a team where either group is smaller than the minimum group size.
 
 ## comments.csv (optional)
 

@@ -46,17 +46,19 @@ Header row: team,quarter,pulse_favorable,pulse_response,manager_score,manager_re
 - exits: people who left the team in the quarter. regretted_exits: of those, how many the team wanted to keep (optional, never more than exits).
 
 3. exits_by_tenure.csv (optional). One row per team.
-Header row: team,under_6m,m6_12,m12_18,over_18
-- Exits in the last 12 months, by how long the person had been in the company when they left: under 6 months, 6 to 12, 12 to 18, over 18. Should add up to the four quarters of exits.
+Header row: team,under_6m,m6_12,m12_18,over_18,reg_under_6m,reg_m6_12,reg_m12_18,reg_over_18
+- under_6m, m6_12, m12_18, over_18: exits in the last 12 months, by how long the person had been in the company when they left. Should add up to the four quarters of exits.
+- reg_under_6m, reg_m6_12, reg_m12_18, reg_over_18 (optional, all four or none): of those exits, how many were people the team wanted to keep (regretted), in the same bands. Never more than the exits in that band. Ask me how "regretted" is defined before you count.
 
 4. items.csv (optional). One row per team, latest quarter.
 Header row: team,growth_career,workload_pace,manager_support,tools_process,recognition,pay_fairness,plan_to_stay
 - Percent of answers that were favorable on each pulse item. plan_to_stay is "I plan to be here in a year".
 
 5. groups.csv (optional, only if I ask for the equity view). One row per team.
-Header row: team,women,other,promoted_women,promoted_men,exits_women,exits_men,compa_women,compa_men,pulse_women,pulse_men,response_women,response_men
-- women: number of women in the team. other: number of people in neither group (0 if unknown).
+Header row: team,women,other,promoted_women,promoted_men,exits_women,exits_men,compa_women,compa_men,pulse_women,pulse_men,response_women,response_men,promoted_other,exits_other,compa_other,pulse_other,response_other
+- women: number of women in the team. other: number of people who are another gender or have not said (0 if none). Never guess anyone's gender.
 - promoted_women, promoted_men, exits_women, exits_men: counts over the last 12 months.
+- promoted_other, exits_other, compa_other, pulse_other, response_other: the same figures for the people counted in other. Leave them empty when other is 0.
 - compa_women, compa_men: average compa-ratio. pulse_women, pulse_men: percent favorable. response_women, response_men: percent who answered.
 
 6. comments.csv (optional). One survey comment per row.
@@ -112,17 +114,19 @@ Header row: team,quarter,pulse_favorable,pulse_response,manager_score,manager_re
 - exits: people who left the team in the quarter. regretted_exits: of those, how many the team wanted to keep (optional, never more than exits).
 
 3. exits_by_tenure.csv (optional). One row per team.
-Header row: team,under_6m,m6_12,m12_18,over_18
-- Exits in the last 12 months, by how long the person had been in the company when they left: under 6 months, 6 to 12, 12 to 18, over 18. Should add up to the four quarters of exits.
+Header row: team,under_6m,m6_12,m12_18,over_18,reg_under_6m,reg_m6_12,reg_m12_18,reg_over_18
+- under_6m, m6_12, m12_18, over_18: exits in the last 12 months, by how long the person had been in the company when they left. Should add up to the four quarters of exits.
+- reg_under_6m, reg_m6_12, reg_m12_18, reg_over_18 (optional, all four or none): of those exits, how many were people the team wanted to keep (regretted), in the same bands. Never more than the exits in that band. Ask me how "regretted" is defined before you count.
 
 4. items.csv (optional). One row per team, latest quarter.
 Header row: team,growth_career,workload_pace,manager_support,tools_process,recognition,pay_fairness,plan_to_stay
 - Percent of answers that were favorable on each pulse item. plan_to_stay is "I plan to be here in a year".
 
 5. groups.csv (optional, only if I ask for the equity view). One row per team.
-Header row: team,women,other,promoted_women,promoted_men,exits_women,exits_men,compa_women,compa_men,pulse_women,pulse_men,response_women,response_men
-- women: number of women in the team. other: number of people in neither group (0 if unknown).
+Header row: team,women,other,promoted_women,promoted_men,exits_women,exits_men,compa_women,compa_men,pulse_women,pulse_men,response_women,response_men,promoted_other,exits_other,compa_other,pulse_other,response_other
+- women: number of women in the team. other: number of people who are another gender or have not said (0 if none). Never guess anyone's gender.
 - promoted_women, promoted_men, exits_women, exits_men: counts over the last 12 months.
+- promoted_other, exits_other, compa_other, pulse_other, response_other: the same figures for the people counted in other. Leave them empty when other is 0.
 - compa_women, compa_men: average compa-ratio. pulse_women, pulse_men: percent favorable. response_women, response_men: percent who answered.
 
 6. comments.csv (optional). One survey comment per row.

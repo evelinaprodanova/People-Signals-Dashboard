@@ -22,7 +22,7 @@ These are the ones shown on the page.
 - **Compa-ratio is not the same as fair pay** *(Pay data)* A low ratio can come from a recent promotion round or poor market data for a niche role. A high one can hide a gap inside the team. Level, location and tenure all move it. Use it to decide where to look first, as a question for Total Rewards, not as a pay equity review.
 - **A warning can become a label** *(Behaviour)* A team marked early warning can be treated as a problem before anything is wrong, and a manager can be judged by it. The flag is a prompt to ask.
 - **"Regretted" is a judgment** *(Definition)* It depends on who decides, and when, and can reflect bias in who managers want to keep. Counts inside one tenure band are very small, so they show as <3 below three. The weight of 2 is my judgment. Agree the definition before the first count.
-- **It does not show whether the action worked** *(Scope)* The follow-through card logs an owner, action and date for each flag and compares the team's status then and now. In the demo it lives in your browser. A real version needs shared storage and a record of changes. It still cannot say the action caused the change.
+- **It does not show whether the action worked** *(Scope)* The Action plan card logs an owner, action and date for each flag and compares the team's status then and now. In the demo it lives in your browser. A real version needs shared storage and a record of changes. It still cannot say the action caused the change.
 
 ## The other 21
 

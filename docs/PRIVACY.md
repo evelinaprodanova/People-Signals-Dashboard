@@ -4,8 +4,8 @@
 
 - It reads the files you choose, in your browser, on your computer.
 - It makes no network requests. There are no fonts, scripts, analytics or images loaded from elsewhere. `tests/run.js` checks the code for network calls.
-- It stores nothing. With your own data, even the follow-through log is kept in memory only and disappears when you reload the page. Only the demo remembers its practice entries, in your browser's local storage.
-- You can download the follow-through log as a CSV. That file is then yours to protect.
+- It stores nothing. With your own data, even the action plan log is kept in memory only and disappears when you reload the page. Only the demo remembers its practice entries, in your browser's local storage.
+- You can download the action plan log as a CSV. That file is then yours to protect.
 
 ## What you are responsible for
 
@@ -25,4 +25,4 @@ This is general information, not legal advice.
 - No individual-level data or predictions.
 - Minimum group sizes, a separate minimum for manager scores, and `<3` for small cells.
 - Only the widest and average manager span are shown, never one per manager.
-- The follow-through log asks for a role as owner, not a name, and warns against employee names.
+- The action plan log asks for a role as owner, not a name, and warns against employee names.
