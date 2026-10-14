@@ -7,6 +7,8 @@
 - It stores nothing. With your own data, even the action plan log is kept in memory only and disappears when you reload the page. Only the demo remembers its practice entries, in your browser's local storage.
 - You can download the action plan log as a CSV. That file is then yours to protect.
 
+Feedback goes through a link, not through the page. The Feedback button opens a form on GitHub, where it is public and tied to the visitor's GitHub account. The page does not send, store or read anything about it. Please do not put real employee data in feedback.
+
 ## What you are responsible for
 
 The tool being local does not remove your obligations. Before loading real people data:
