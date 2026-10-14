@@ -161,7 +161,7 @@ try {
 
 // 8. no network requests anywhere in the code
 const code = read('index.html') + read('src/app.js') + read('src/data.js');
-ok(!/(fetch\(|XMLHttpRequest|sendBeacon|WebSocket|https?:\/\/(?!www\.w3\.org))/.test(code.replace(/https?:\/\/(github\.com|opensource\.org)[^\s"'<]*/g, '')), 'the code contains no network calls or external links');
+ok(!/(fetch\(|XMLHttpRequest|sendBeacon|WebSocket|https?:\/\/(?!www\.w3\.org))/.test(code.replace(/https?:\/\/(github\.com\/evelinaprodanova\/People-Signals-Dashboard|opensource\.org)[^\s"'<]*/g, '')), 'the code contains no network calls or external links');
 
 console.log(failed ? `\n${failed} failed` : '\nall passed');
 process.exit(failed ? 1 : 0);
